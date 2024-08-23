@@ -117,11 +117,11 @@ if uploaded_file is not None:
             
             # Append progress for each category
             for category, ects in total_ects.items():
-                progress_summary = progress_summary.append({
-                    'Category': category,
-                    'Progress': 'Total',
-                    'ECTS': ects
-                }, ignore_index=True)
+                progress_summary = pd.concat([progress_summary, pd.DataFrame({
+                    'Category': [category],
+                    'Progress': ['Total'],
+                    'ECTS': [ects]
+                })], ignore_index=True)
             
             # Calculate progress percentages
             progress_summary['Percentage'] = progress_summary['ECTS'] / progress_summary['ECTS'].max() * 100
