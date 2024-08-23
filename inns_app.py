@@ -58,6 +58,12 @@ if uploaded_file is not None:
                 modules.columns = modules.columns.str.strip()
                 st.write("Column Names Found (with different encoding):", modules.columns.tolist())
                 return modules
+            except pd.errors.EmptyDataError:
+                st.error("The uploaded file is empty or invalid after trying with ISO-8859-1. Please check the file content.")
+                return pd.DataFrame()  # Return an empty DataFrame
+            except pd.errors.ParserError:
+                st.error("ParserError: The uploaded file could not be parsed. Please check the file content and format.")
+                return pd.DataFrame()  # Return an empty DataFrame
             except Exception as e:
                 st.error(f"Failed to load file with different encoding. Error: {e}")
                 return pd.DataFrame()  # Return an empty DataFrame
