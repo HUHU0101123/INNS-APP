@@ -115,9 +115,9 @@ if all([df is not None for df in [modules, compulsory_courses, elective_submodul
     # Create summary table
     summary_data = {
         "Category": ["Compulsory", "Elective", "Total"],
-        "Total ECTS": [f"{total_compulsory:.1f}", f"{total_elective:.1f}", f"{total_ects:.1f}"],
-        "Completed ECTS": [f"{compulsory_done:.1f}", f"{elective_done_percent:.1f}", f"{completed_ects:.1f}"],
-        "Completion Percentage": [f"{compulsory_done_percent:.1f}%", f"{elective_done_percent:.1f}%", f"{completion_percentage:.1f}%"]
+        "Total ECTS": [total_compulsory, total_elective, total_ects],
+        "Completed ECTS": [compulsory_done, elective_done, completed_ects],
+        "Completion Percentage": [compulsory_done_percent, elective_done_percent, completion_percentage]
     }
     
     summary_df = pd.DataFrame(summary_data)
@@ -149,15 +149,13 @@ if all([df is not None for df in [modules, compulsory_courses, elective_submodul
     
     # Display the table with a custom header
     st.markdown("## 📊 Summary Table")
-    st.table(summary_df.style.set_properties(**{
-        'background-color': 'white',
-        'color': 'black',
-        'border-color': 'darkgrey'
-    }).format({
-        'Total ECTS': '{:.1f}',
-        'Completed ECTS': '{:.1f}',
-        'Completion Percentage': '{:.1f}%'
-    }))
+    
+    # Format the DataFrame
+    summary_df['Total ECTS'] = summary_df['Total ECTS'].map('{:.1f}'.format)
+    summary_df['Completed ECTS'] = summary_df['Completed ECTS'].map('{:.1f}'.format)
+    summary_df['Completion Percentage'] = summary_df['Completion Percentage'].map('{:.1f}%'.format)
+    
+    st.table(summary_df)
     
     # Add some explanatory text
     st.markdown("""
