@@ -114,7 +114,6 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
 
         # Create the stacked bar chart
         try:
-            
             fig_stacked_bar = go.Figure()
 
             # Add bars for each status
@@ -134,45 +133,37 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
                 marker_color='#e74c3c'
             ))
 
-            # Add overall completion line
-            #fig_stacked_bar.add_trace(go.Scatter(
-               # x=categories, 
-                #y=[completion_percentage] * len(categories),
-               # mode='lines+markers+text',
-               # name='Overall Completion',
-               # line=dict(color='blue', width=2, dash='dash'),
-               # marker=dict(size=8),
-               # text=[f'{completion_percentage:.1f}%'] * len(categories),
-                #textposition='top right',
-                #hoverinfo='none'  # Disable hover information
-           # ))
-
             # Update layout
             fig_stacked_bar.update_layout(
                 barmode='stack',
                 title="PhD Progress: Compulsory and Elective Modules",
                 xaxis_title="Module Type",
                 yaxis_title="Percentage",
-                yaxis=dict(tickformat='.0%', range=[0, 100], visible=False),  # Hide Y axis
+                yaxis=dict(tickformat='.0%', range=[0, 100]),  # Visible Y axis
                 legend_title="Status",
                 width=700,
                 height=500,
             )
 
-            
             st.plotly_chart(fig_stacked_bar)
-            
 
-            # Display a summary table below the graph
+            # Display a detailed summary table with sub-modules/courses
             summary_data = {
-                "Category": ["Compulsory", "Elective", "Total"],
-                "Total ECTS": [total_compulsory, total_elective, total_ects],
-                "Completed ECTS": [compulsory_done, elective_done, completed_ects],
-                "Completion Percentage": [f"{compulsory_done_percent:.1f}%", f"{elective_done_percent:.1f}%", f"{completion_percentage:.1f}%"]
+                "Category": ["Compulsory", "Elective"],
+                "Sub-modules/Courses": [
+                    ", ".join(compulsory_courses['course_name'] + " (" + compulsory_courses['ects'].astype(str) + " ECTS)"),
+                    ", ".join(elective_courses['course_name'] + " (" + elective_courses['ects'].astype(str) + " ECTS)")
+                ],
+                "Total ECTS": [total_compulsory, total_elective],
+                "Completed ECTS": [compulsory_done, elective_done],
+                "Completion Percentage": [f"{compulsory_done_percent:.1f}%", f"{elective_done_percent:.1f}%"]
             }
             summary_df = pd.DataFrame(summary_data)
-            st.write("### Summary Table")
-            st.table(summary_df)
+            st.write("### Detailed Summary Table")
+            st.dataframe(summary_df.style.set_properties(**{'text-align': 'left'}).set_table_styles([{
+                'selector': 'th',
+                'props': [('font-size', '16px'), ('text-align', 'left')]
+            }]))
 
         except Exception as e:
             st.error(f"Error creating or displaying percentage stacked bar chart: {e}")
