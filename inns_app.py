@@ -27,7 +27,7 @@ def load_data():
 modules, compulsory_courses, elective_submodules, elective_courses = load_data()
 
 if all([df is not None for df in [modules, compulsory_courses, elective_submodules, elective_courses]]):
-    st.success("Data loaded successfully from the repository.")
+    
 
     # Calculate ECTS for compulsory and elective modules
     compulsory_done = compulsory_courses[compulsory_courses['status'] == 'Done']['ects'].sum()
