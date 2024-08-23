@@ -163,14 +163,18 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
             st.plotly_chart(fig_stacked_bar)
             
 
-            # Display a summary table below the graph
+            # Crear el diccionario con los datos
             summary_data = {
                 "Category": ["Compulsory", "Elective", "Total"],
                 "Total ECTS": [total_compulsory, total_elective, total_ects],
                 "Completed ECTS": [compulsory_done, elective_done, completed_ects],
                 "Completion Percentage": [f"{compulsory_done_percent:.1f}%", f"{elective_done_percent:.1f}%", f"{completion_percentage:.1f}%"]
             }
+            
+            # Crear un DataFrame de pandas
             summary_df = pd.DataFrame(summary_data)
+            
+            # Mostrar la tabla en Streamlit
             st.write("### Summary Table")
             st.table(summary_df)
 
