@@ -116,13 +116,58 @@ if all([df is not None for df in [modules, compulsory_courses, elective_submodul
     summary_data = {
         "Category": ["Compulsory", "Elective", "Total"],
         "Total ECTS": [f"{total_compulsory:.1f}", f"{total_elective:.1f}", f"{total_ects:.1f}"],
-        "Completed ECTS": [f"{compulsory_done:.1f}", f"{elective_done:.1f}", f"{completed_ects:.1f}"],
+        "Completed ECTS": [f"{compulsory_done:.1f}", f"{elective_done_percent:.1f}", f"{completed_ects:.1f}"],
         "Completion Percentage": [f"{compulsory_done_percent:.1f}%", f"{elective_done_percent:.1f}%", f"{completion_percentage:.1f}%"]
     }
-
+    
     summary_df = pd.DataFrame(summary_data)
-    st.write("### Summary Table")
-    st.table(summary_df)
+    
+    # Custom CSS to style the table
+    st.markdown("""
+    <style>
+        .stTable {
+            font-size: 18px;
+        }
+        .stTable thead tr th {
+            background-color: #0e1117;
+            color: white;
+            font-weight: bold;
+            text-align: center !important;
+        }
+        .stTable tbody tr:nth-of-type(even) {
+            background-color: #f3f3f3;
+        }
+        .stTable tbody tr:hover {
+            background-color: #e6f3ff;
+            transition: background-color 0.3s;
+        }
+        .stTable td {
+            text-align: center !important;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # Display the table with a custom header
+    st.markdown("## 📊 Summary Table")
+    st.table(summary_df.style.set_properties(**{
+        'background-color': 'white',
+        'color': 'black',
+        'border-color': 'darkgrey'
+    }).format({
+        'Total ECTS': '{:.1f}',
+        'Completed ECTS': '{:.1f}',
+        'Completion Percentage': '{:.1f}%'
+    }))
+    
+    # Add some explanatory text
+    st.markdown("""
+    This table provides a summary of your academic progress:
+    - **Compulsory**: Required courses for your program
+    - **Elective**: Optional courses you can choose
+    - **Total**: Sum of compulsory and elective courses
+    
+    The 'Completion Percentage' shows how much of each category you've finished.
+    """)
 
 else:
     st.error("Failed to load data from the repository. Please check if all required CSV files are present and valid in your GitHub repository.")
