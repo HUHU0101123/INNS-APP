@@ -82,6 +82,9 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
         elective_in_progress = min(elective_courses[elective_courses['status'] == 'Current Semester']['ects'].sum(), 10 - elective_done)
         elective_pending = max(0, 10 - elective_done - elective_in_progress)
 
+        # Calculate total ECTS
+        total_ects = modules[modules['module_name'] != 'Dissertation']['required_ects'].sum()
+
         # Create data for the pie chart
         pie_data = pd.DataFrame({
             'Category': ['Compulsory Modules', 'Elective Modules'],
@@ -114,7 +117,11 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
         total_in_progress = compulsory_in_progress + elective_in_progress
         total_pending = compulsory_pending + elective_pending
         
-        st.write(f"You've completed {total_done:.1f} ECTS out of the required {total_ects} ECTS, which is {(total_done/total_ects)*100:.1f}% of your coursework.")
+        if total_ects > 0:
+            st.write(f"You've completed {total_done:.1f} ECTS out of the required {total_ects} ECTS, which is {(total_done/total_ects)*100:.1f}% of your coursework.")
+        else:
+            st.write("Total ECTS required is not defined. Please check your data.")
+        
         st.write(f"Currently, you're working on {total_in_progress:.1f} ECTS, and have {total_pending:.1f} ECTS pending.")
         
         if total_done > (total_ects / 2):
