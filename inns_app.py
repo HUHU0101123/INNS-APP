@@ -59,6 +59,7 @@ if all([df is not None for df in [modules, compulsory_courses, elective_submodul
     completion_percentage = (completed_ects / total_ects) * 100 if total_ects > 0 else 0
 
     st.write("## Overall Completion Percentage")
+    st.write(f"**{completion_percentage:.1f}% Complete**")  # Display percentage
     st.progress(completion_percentage / 100)
 
     # Prepare data for the stacked bar chart
@@ -184,5 +185,4 @@ if all([df is not None for df in [modules, compulsory_courses, elective_submodul
 
 else:
     st.error("Failed to load data from the repository. Please check if all required CSV files are present and valid in your GitHub repository.")
-
 
