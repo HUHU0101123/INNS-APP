@@ -70,7 +70,7 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
     )
 
     if not any(df.empty for df in [modules, compulsory_courses, elective_submodules, elective_courses]):
-        st.write("Data loaded successfully.")
+        st.write("Data loaded successfully. Let's explore your PhD progress!")
 
         # Calcular ECTS para módulos obligatorios y electivos
         compulsory_done = compulsory_courses[compulsory_courses['status'] == 'Done']['ects'].sum()
@@ -124,12 +124,9 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
         st.write(f"Total ECTS: {total_ects}")
         st.write(f"Completed ECTS: {completed_ects}")
 
-        # Mostrar una barra de progreso
-        st.progress(completion_percentage / 100)
-
         # Crear el gráfico de barras apiladas
         try:
-            
+            st.write("Attempting to create percentage stacked bar chart...")
             fig_stacked_bar = go.Figure()
 
             # Añadir barras para cada estado
@@ -167,9 +164,20 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
                 height=500,
             )
 
-            
+            st.write("Percentage stacked bar chart created successfully. Attempting to display...")
             st.plotly_chart(fig_stacked_bar)
-           
+            st.write("Percentage stacked bar chart should be displayed above.")
+
+            # Mostrar tabla con el resumen
+            st.write("## Overall Completion Summary")
+            summary_data = {
+                "Category": ["Compulsory", "Elective", "Total"],
+                "Total ECTS": [total_compulsory, total_elective, total_ects],
+                "Completed ECTS": [compulsory_done, elective_done, completed_ects],
+                "Completion Percentage": [compulsory_done_percent, elective_done_percent, completion_percentage]
+            }
+            summary_df = pd.DataFrame(summary_data)
+            st.table(summary_df)
 
         except Exception as e:
             st.error(f"Error creating or displaying percentage stacked bar chart: {e}")
@@ -185,4 +193,8 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
         st.warning("One or more DataFrames are empty. Please check your CSV files.")
 else:
     st.warning("Please upload all required CSV files to proceed.")
+
+# Añadir información de la versión de Plotly
+import plotly
+st.write(f"Plotly version: {plotly.__version__}")
 
