@@ -66,26 +66,77 @@ if uploaded_file is not None:
             # Data processing and visualization
             st.write("Data loaded successfully. Ready for processing and visualization.")
             
-            # Filter out Dissertation for Pie Chart
-            progress_data = modules[modules['module_name'] != 'Dissertation'].copy()
-            progress_data['Progress'] = progress_data.apply(
-                lambda x: 'Done' if x['status'] == 'Done' 
-                          else ('In Progress' if x['status'] == 'In Progress' 
-                                else 'Not Started'),
+            # Define main modules and their sub-modules
+            main_modules = {
+                "Compulsory Modules": ["Methodologische Grundlagen", "Quantitative Foschungsmethoden", "Qualitative Forschungsmethoden", "Professionelle Development", "Verteidigung der Dissertation"],
+                "Elective Modules": ["Generic Competences", "Specific Research Methods", "PhD Research Seminar", "Scientific Discourse"],
+                "Dissertation": []
+            }
+            
+            # Initialize dictionary to store total ECTS for each category
+            total_ects = {
+                "Compulsory Modules": 0,
+                "Elective Modules": 0,
+                "Dissertation": 0
+            }
+            
+            # Initialize dictionary to store ECTS for elective sub-modules
+            elective_ects = {
+                "Generic Competences": 0,
+                "Specific Research Methods": 0,
+                "PhD Research Seminar": 0,
+                "Scientific Discourse": 0
+            }
+            
+            # Create a DataFrame for progress summary
+            progress_summary = pd.DataFrame(columns=['Category', 'Progress', 'ECTS'])
+            
+            # Calculate total ECTS for compulsory modules
+            compulsory_data = modules[modules['module_name'].isin(main_modules["Compulsory Modules"])]
+            total_ects["Compulsory Modules"] = compulsory_data['current_ects'].sum()
+            
+            # Calculate total ECTS for dissertation
+            dissertation_data = modules[modules['module_name'] == "Dissertation"]
+            total_ects["Dissertation"] = dissertation_data['current_ects'].sum()
+            
+            # Process elective modules
+            elective_data = modules[modules['module_name'].isin(main_modules["Elective Modules"])]
+            
+            # Calculate ECTS for each sub-module within Elective Modules
+            for module in main_modules["Elective Modules"]:
+                module_data = elective_data[elective_data['module_name'] == module]
+                sub_module_ects = module_data['current_ects'].sum()
+                elective_ects[module] = min(sub_module_ects, 5)  # Each sub-module can have a max of 5 ECTS
+            
+            # Calculate total ECTS for all elective modules, respecting the max total of 10 ECTS
+            total_elective_ects = sum(elective_ects.values())
+            total_elective_ects = min(total_elective_ects, 10)
+            
+            # Update total ECTS for Elective Modules category
+            total_ects["Elective Modules"] = total_elective_ects
+            
+            # Append progress for each category
+            for category, ects in total_ects.items():
+                progress_summary = progress_summary.append({
+                    'Category': category,
+                    'Progress': 'Total',
+                    'ECTS': ects
+                }, ignore_index=True)
+            
+            # Calculate progress percentages
+            progress_summary['Percentage'] = progress_summary['ECTS'] / progress_summary['ECTS'].max() * 100
+            progress_summary['Label'] = progress_summary.apply(
+                lambda x: f"{x['Category']} ({x['ECTS']} ECTS)",
                 axis=1
             )
-
-            progress_aggregated = progress_data.groupby('Progress').agg(
-                total_current_ects=('current_ects', 'sum'),
-                total_required_ects=('required_ects', 'sum')
-            ).reset_index()
             
+            # Pie chart
             fig_pie = px.pie(
-                progress_aggregated,
-                names='Progress',
-                values='total_current_ects',
+                progress_summary,
+                names='Label',
+                values='Percentage',
                 title='Progress Distribution (Excluding Dissertation)',
-                labels={'total_current_ects': 'ECTS'},
+                labels={'Percentage': 'Percentage'},
                 height=400
             )
             st.plotly_chart(fig_pie)
@@ -109,4 +160,3 @@ if uploaded_file is not None:
             st.write("Available columns:", modules.columns.tolist())
     else:
         st.warning("Please upload a CSV file to continue.")
-
