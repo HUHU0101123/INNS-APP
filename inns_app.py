@@ -174,6 +174,48 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
             st.write("### Summary Table")
             st.table(summary_df)
 
+            # Add this import at the top of your file
+            from streamlit_nested_expander import st_nested_expander
+            
+            # Replace the existing summary table code with this:
+            st.write("### Hierarchical Summary Table")
+            
+            # Main expander for all data
+            with st.expander("Overall Summary", expanded=True):
+                st.table(summary_df)
+                
+                # Compulsory Courses expander
+                with st.expander("Compulsory Courses"):
+                    st.write("#### Compulsory Courses Details")
+                    st.table(compulsory_courses)
+                    
+                    # Nested expanders for each compulsory course status
+                    for status in ['Done', 'Current Semester', 'Not Started']:
+                        with st.expander(f"{status} Courses"):
+                            filtered_courses = compulsory_courses[compulsory_courses['status'] == status]
+                            st.table(filtered_courses)
+                
+                # Elective Courses expander
+                with st.expander("Elective Courses"):
+                    st.write("#### Elective Courses Details")
+                    st.table(elective_courses)
+                    
+                    # Nested expanders for each elective course status
+                    for status in ['Done', 'Current Semester', 'Not Started']:
+                        with st.expander(f"{status} Courses"):
+                            filtered_courses = elective_courses[elective_courses['status'] == status]
+                            st.table(filtered_courses)
+                
+                # Elective Submodules expander
+                with st.expander("Elective Submodules"):
+                    st.write("#### Elective Submodules Details")
+                    st.table(elective_submodules)
+
+
+
+#REST OF THE CODE
+        
+
         except Exception as e:
             st.error(f"Error creating or displaying percentage stacked bar chart: {e}")
             st.write("Chart data:")
