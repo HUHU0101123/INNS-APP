@@ -80,19 +80,22 @@ if all([df is not None for df in [modules, compulsory_courses, elective_submodul
     
     fig_stacked_bar.add_trace(go.Bar(
         name='Done', x=categories, y=done_percentages,
-        text=[f'{p:.1f}%<br>({compulsory_done_count} courses)', f'{p:.1f}%<br>({elective_done_count} courses)'],
+        text=[f'{compulsory_done_percent:.1f}%<br>({compulsory_done_count} courses)', 
+              f'{elective_done_percent:.1f}%<br>({elective_done_count} courses)'],
         textposition='inside',
         marker_color='#2ecc71'
     ))
     fig_stacked_bar.add_trace(go.Bar(
         name='In Progress', x=categories, y=in_progress_percentages,
-        text=[f'{p:.1f}%<br>({compulsory_in_progress_count} courses)', f'{p:.1f}%<br>({elective_in_progress_count} courses)'],
+        text=[f'{compulsory_in_progress_percent:.1f}%<br>({compulsory_in_progress_count} courses)', 
+              f'{elective_in_progress_percent:.1f}%<br>({elective_in_progress_count} courses)'],
         textposition='inside',
         marker_color='#f39c12'
     ))
     fig_stacked_bar.add_trace(go.Bar(
         name='Pending', x=categories, y=pending_percentages,
-        text=[f'{p:.1f}%<br>({compulsory_pending_count} courses)', f'{p:.1f}%<br>({elective_pending_count} courses)'],
+        text=[f'{compulsory_pending_percent:.1f}%<br>({compulsory_pending_count} courses)', 
+              f'{elective_pending_percent:.1f}%<br>({elective_pending_count} courses)'],
         textposition='inside',
         marker_color='#e74c3c'
     ))
@@ -106,7 +109,7 @@ if all([df is not None for df in [modules, compulsory_courses, elective_submodul
         width=700,
         height=500,
     )
-
+    
     st.plotly_chart(fig_stacked_bar)
 
     # Create summary table
