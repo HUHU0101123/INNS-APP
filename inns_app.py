@@ -118,6 +118,7 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
 
         # Create the sunburst chart
         try:
+            st.write("Attempting to create sunburst chart...")
             fig_sunburst = go.Figure(go.Sunburst(
                 labels=labels,
                 parents=parents,
@@ -133,13 +134,29 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
                 height=700,
             )
 
+            st.write("Sunburst chart created successfully. Attempting to display...")
             st.plotly_chart(fig_sunburst)
+            st.write("Sunburst chart should be displayed above.")
         except Exception as e:
-            st.error(f"Error creating sunburst chart: {e}")
+            st.error(f"Error creating or displaying sunburst chart: {e}")
             st.write("Chart data:")
             st.write(pd.DataFrame({"labels": labels, "parents": parents, "values": values}))
+
+        # Add a simple bar chart as a fallback
+        st.write("Displaying a simple bar chart as a fallback:")
+        bar_data = pd.DataFrame({
+            'Category': ['Compulsory Done', 'Compulsory In Progress', 'Compulsory Pending', 
+                         'Elective Done', 'Elective In Progress', 'Elective Pending'],
+            'ECTS': [compulsory_done, compulsory_in_progress, compulsory_pending, 
+                     elective_done, elective_in_progress, elective_pending]
+        })
+        st.bar_chart(bar_data.set_index('Category'))
 
     else:
         st.warning("One or more DataFrames are empty. Please check your CSV files.")
 else:
     st.warning("Please upload all required CSV files to proceed.")
+
+# Add Plotly version information
+import plotly
+st.write(f"Plotly version: {plotly.__version__}")
