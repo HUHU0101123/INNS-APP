@@ -3,7 +3,51 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-# [Código de inicialización de session_state y carga de archivos se mantiene igual]
+# Initialize session state to store the last uploaded files
+if 'uploaded_file_modules' not in st.session_state:
+    st.session_state.uploaded_file_modules = None
+if 'uploaded_file_compulsory' not in st.session_state:
+    st.session_state.uploaded_file_compulsory = None
+if 'uploaded_file_elective_submodules' not in st.session_state:
+    st.session_state.uploaded_file_elective_submodules = None
+if 'uploaded_file_elective_courses' not in st.session_state:
+    st.session_state.uploaded_file_elective_courses = None
+
+st.title('PhD Progress Tracker')
+
+# Provide options to upload new files or use the last uploaded files
+file_option = st.radio(
+    "Choose file option:",
+    ("Upload new files", "Use the last uploaded files")
+)
+
+if file_option == "Upload new files":
+    uploaded_file_modules = st.file_uploader("Choose the modules CSV file", type="csv", key='modules')
+    uploaded_file_compulsory = st.file_uploader("Choose the compulsory courses CSV file", type="csv", key='compulsory')
+    uploaded_file_elective_submodules = st.file_uploader("Choose the elective submodules CSV file", type="csv", key='elective_submodules')
+    uploaded_file_elective_courses = st.file_uploader("Choose the elective courses CSV file", type="csv", key='elective_courses')
+
+    # If new files are uploaded, update session state
+    if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_submodules, uploaded_file_elective_courses]):
+        st.session_state.uploaded_file_modules = uploaded_file_modules
+        st.session_state.uploaded_file_compulsory = uploaded_file_compulsory
+        st.session_state.uploaded_file_elective_submodules = uploaded_file_elective_submodules
+        st.session_state.uploaded_file_elective_courses = uploaded_file_elective_courses
+        st.write("Files uploaded successfully. Processing data...")
+    else:
+        st.warning("Please upload all CSV files.")
+else:
+    # Use the last uploaded files from session state
+    uploaded_file_modules = st.session_state.uploaded_file_modules
+    uploaded_file_compulsory = st.session_state.uploaded_file_compulsory
+    uploaded_file_elective_submodules = st.session_state.uploaded_file_elective_submodules
+    uploaded_file_elective_courses = st.session_state.uploaded_file_elective_courses
+
+    if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_submodules, uploaded_file_elective_courses]):
+        st.write("Using the last uploaded files.")
+    else:
+        st.warning("No previously uploaded files found. Please upload new files.")
+        uploaded_file_modules = uploaded_file_compulsory = uploaded_file_elective_submodules = uploaded_file_elective_courses = None
 
 # Load and display data if files are available
 if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_submodules, uploaded_file_elective_courses]):
@@ -131,3 +175,5 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
 
     else:
         st.warning("Please upload valid CSV files to continue.")
+else:
+    st.warning("Please upload all required CSV files to proceed.")
