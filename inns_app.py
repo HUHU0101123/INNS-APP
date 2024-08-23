@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
 
 # Initialize session state to store the last uploaded files
@@ -82,34 +81,42 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
         elective_in_progress = min(elective_courses[elective_courses['status'] == 'Current Semester']['ects'].sum(), 10 - elective_done)
         elective_pending = max(0, 10 - elective_done - elective_in_progress)
 
-        # Calculate total ECTS
-        total_ects = modules[modules['module_name'] != 'Dissertation']['required_ects'].sum()
+        # Create data for the sunburst chart
+        labels = [
+            "PhD Progress", "Compulsory Modules", "Elective Modules",
+            "Compulsory Done", "Compulsory In Progress", "Compulsory Pending",
+            "Elective Done", "Elective In Progress", "Elective Pending"
+        ]
+        parents = [
+            "", "PhD Progress", "PhD Progress",
+            "Compulsory Modules", "Compulsory Modules", "Compulsory Modules",
+            "Elective Modules", "Elective Modules", "Elective Modules"
+        ]
+        values = [
+            0,  # PhD Progress (root)
+            compulsory_done + compulsory_in_progress + compulsory_pending,  # Compulsory Modules
+            elective_done + elective_in_progress + elective_pending,  # Elective Modules
+            compulsory_done, compulsory_in_progress, compulsory_pending,
+            elective_done, elective_in_progress, elective_pending
+        ]
 
-        # Create data for the pie chart
-        pie_data = pd.DataFrame({
-            'Category': ['Compulsory Modules', 'Elective Modules'],
-            'Done': [compulsory_done, elective_done],
-            'In Progress': [compulsory_in_progress, elective_in_progress],
-            'Pending': [compulsory_pending, elective_pending]
-        })
+        # Create the sunburst chart
+        fig_sunburst = go.Figure(go.Sunburst(
+            labels=labels,
+            parents=parents,
+            values=values,
+            branchvalues="total",
+            textinfo="label+value",
+            insidetextorientation='radial'
+        ))
 
-        # Melt the data for pie chart plotting
-        pie_data_melted = pie_data.melt(id_vars='Category', var_name='Status', value_name='ECTS')
-
-        # Create pie chart
-        fig_pie = px.pie(
-            pie_data_melted,
-            names='Status',
-            values='ECTS',
-            title='PhD Progress by Category and Status',
-            color='Status',
-            color_discrete_map={'Done': 'green', 'In Progress': 'yellow', 'Pending': 'red'},
-            labels={'ECTS': 'ECTS'},
-            height=500
+        fig_sunburst.update_layout(
+            title="PhD Progress: Compulsory and Elective Modules",
+            width=700,
+            height=700,
         )
 
-        fig_pie.update_traces(textposition='inside', textinfo='percent+label')
-        st.plotly_chart(fig_pie)
+        st.plotly_chart(fig_sunburst)
 
         # Storytelling
         st.subheader("Your PhD Journey So Far")
