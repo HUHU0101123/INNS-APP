@@ -67,10 +67,13 @@ if uploaded_file is not None:
         required_columns = {'current_ects', 'module_name', 'required_ects', 'status', 'notes'}
         if required_columns.issubset(modules.columns):
             # Your existing code for data processing and visualization goes here
-            # ...
-
+            st.write("Data loaded successfully. Ready for processing and visualization.")
+            # For example, you might add:
+            # st.dataframe(modules)
+            # total_ects_earned = modules['current_ects'].sum()
+            # st.write(f"Total ECTS earned: {total_ects_earned}")
         else:
             st.error("The uploaded CSV file is missing one or more required columns. Please ensure it contains 'current_ects', 'module_name', 'required_ects', 'status', and 'notes'.")
             st.write("Available columns:", modules.columns.tolist())
-else:
-    st.warning("Please upload a CSV file to continue.")
+    else:
+        st.warning("Please upload a CSV file to continue.")
