@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
+from streamlit_nested_expander import st_nested_expander
 
 # Initialize session state to store the last uploaded files
 if 'uploaded_file_modules' not in st.session_state:
