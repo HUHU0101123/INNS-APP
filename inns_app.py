@@ -70,7 +70,7 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
     )
 
     if not any(df.empty for df in [modules, compulsory_courses, elective_submodules, elective_courses]):
-        st.write("Data loaded successfully. Let's explore your PhD progress!")
+        st.write("Data loaded successfully.")
 
         # Calculate ECTS for compulsory and elective modules
         compulsory_done = compulsory_courses[compulsory_courses['status'] == 'Done']['ects'].sum()
@@ -98,15 +98,6 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
         elective_in_progress_percent = calculate_percentage(elective_in_progress, total_elective)
         elective_pending_percent = calculate_percentage(elective_pending, total_elective)
 
-        # Debug information
-        st.write("## ECTS Calculations")
-        st.write(f"Compulsory done: {compulsory_done} ECTS ({compulsory_done_percent:.1f}%)")
-        st.write(f"Compulsory in progress: {compulsory_in_progress} ECTS ({compulsory_in_progress_percent:.1f}%)")
-        st.write(f"Compulsory pending: {compulsory_pending} ECTS ({compulsory_pending_percent:.1f}%)")
-        st.write(f"Elective done: {elective_done} ECTS ({elective_done_percent:.1f}%)")
-        st.write(f"Elective in progress: {elective_in_progress} ECTS ({elective_in_progress_percent:.1f}%)")
-        st.write(f"Elective pending: {elective_pending} ECTS ({elective_pending_percent:.1f}%)")
-
         # Display overall completion percentage with a progress bar
         completed_ects = compulsory_done + elective_done
         total_ects = total_compulsory + total_elective
@@ -123,7 +114,7 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
 
         # Create the stacked bar chart
         try:
-            st.write("Attempting to create percentage stacked bar chart...")
+            
             fig_stacked_bar = go.Figure()
 
             # Add bars for each status
@@ -168,9 +159,9 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
                 height=500,
             )
 
-            st.write("Percentage stacked bar chart created successfully. Attempting to display...")
+            
             st.plotly_chart(fig_stacked_bar)
-            st.write("Percentage stacked bar chart should be displayed above.")
+            
 
             # Display a summary table below the graph
             summary_data = {
@@ -197,6 +188,4 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
 else:
     st.warning("Please upload all required CSV files to proceed.")
 
-# Add Plotly version information
-import plotly
-st.write(f"Plotly version: {plotly.__version__}")
+
