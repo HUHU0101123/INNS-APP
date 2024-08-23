@@ -19,6 +19,9 @@ if uploaded_file is not None:
         
         # Remove any leading/trailing whitespace from column names
         modules.columns = modules.columns.str.strip()
+
+        # Print column names to debug
+        st.write("Column Names Found:", modules.columns.tolist())
         
         return modules
 
@@ -27,7 +30,8 @@ if uploaded_file is not None:
     st.title('PhD Progress Tracker')
 
     # Ensure necessary columns are present
-    if 'current_ects' in modules.columns and 'module_name' in modules.columns and 'required_ects' in modules.columns and 'status' in modules.columns and 'notes' in modules.columns:
+    required_columns = {'current_ects', 'module_name', 'required_ects', 'status', 'notes'}
+    if required_columns.issubset(modules.columns):
         # Overall progress
         total_ects_required = 180  # Total ECTS for the entire PhD program
         total_ects_earned = modules['current_ects'].sum()
@@ -69,6 +73,7 @@ if uploaded_file is not None:
                 st.write(f"  • {submodule['module_name']}: {submodule['current_ects']}/{submodule['required_ects']} ECTS - {submodule['status']}")
     else:
         st.error("The uploaded CSV file is missing one or more required columns. Please ensure it contains 'current_ects', 'module_name', 'required_ects', 'status', and 'notes'.")
+        st.write("Available columns:", modules.columns.tolist())
 
 else:
     st.warning("Please upload a CSV file to continue.")
