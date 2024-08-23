@@ -1,87 +1,33 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-import os
-
-# Function to load files from the repository
-def load_repository_files():
-    repo_path = "path/to/your/repository"  # Update this path
-    try:
-        modules = pd.read_csv(os.path.join(repo_path, "modules.csv"))
-        compulsory_courses = pd.read_csv(os.path.join(repo_path, "compulsory_courses.csv"))
-        elective_submodules = pd.read_csv(os.path.join(repo_path, "elective_submodules.csv"))
-        elective_courses = pd.read_csv(os.path.join(repo_path, "elective_courses.csv"))
-        return modules, compulsory_courses, elective_submodules, elective_courses
-    except FileNotFoundError:
-        st.error("Some repository files not found. Please check the repository path.")
-        return None, None, None, None
-    except pd.errors.EmptyDataError:
-        st.error("One or more repository files are empty or invalid.")
-        return None, None, None, None
-
-# Initialize session state to store the last uploaded files
-if 'uploaded_file_modules' not in st.session_state:
-    st.session_state.uploaded_file_modules = None
-if 'uploaded_file_compulsory' not in st.session_state:
-    st.session_state.uploaded_file_compulsory = None
-if 'uploaded_file_elective_submodules' not in st.session_state:
-    st.session_state.uploaded_file_elective_submodules = None
-if 'uploaded_file_elective_courses' not in st.session_state:
-    st.session_state.uploaded_file_elective_courses = None
 
 st.title('PhD Progress Tracker')
 
-# Provide options to use repository files, upload new files, or use the last uploaded files
-file_option = st.radio(
-    "Choose file option:",
-    ("Use repository files", "Upload new files", "Use the last uploaded files")
-)
+# Function to load data from CSV files in the repository
+@st.cache_data
+def load_data():
+    try:
+        modules = pd.read_csv("modules.csv")
+        compulsory_courses = pd.read_csv("compulsory_courses.csv")
+        elective_submodules = pd.read_csv("elective_submodules.csv")
+        elective_courses = pd.read_csv("elective_courses.csv")
+        return modules, compulsory_courses, elective_submodules, elective_courses
+    except FileNotFoundError as e:
+        st.error(f"File not found: {e.filename}")
+        return None, None, None, None
+    except pd.errors.EmptyDataError:
+        st.error("One or more files are empty or invalid.")
+        return None, None, None, None
+    except Exception as e:
+        st.error(f"Error loading files: {e}")
+        return None, None, None, None
 
-if file_option == "Use repository files":
-    modules, compulsory_courses, elective_submodules, elective_courses = load_repository_files()
-    if all([modules is not None, compulsory_courses is not None, elective_submodules is not None, elective_courses is not None]):
-        st.success("Files loaded successfully from the repository.")
-    else:
-        st.error("Failed to load files from the repository. Please check the repository or choose another option.")
-elif file_option == "Upload new files":
-    uploaded_file_modules = st.file_uploader("Choose the modules CSV file", type="csv", key='modules')
-    uploaded_file_compulsory = st.file_uploader("Choose the compulsory courses CSV file", type="csv", key='compulsory')
-    uploaded_file_elective_submodules = st.file_uploader("Choose the elective submodules CSV file", type="csv", key='elective_submodules')
-    uploaded_file_elective_courses = st.file_uploader("Choose the elective courses CSV file", type="csv", key='elective_courses')
+# Load data
+modules, compulsory_courses, elective_submodules, elective_courses = load_data()
 
-    if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_submodules, uploaded_file_elective_courses]):
-        st.session_state.uploaded_file_modules = uploaded_file_modules
-        st.session_state.uploaded_file_compulsory = uploaded_file_compulsory
-        st.session_state.uploaded_file_elective_submodules = uploaded_file_elective_submodules
-        st.session_state.uploaded_file_elective_courses = uploaded_file_elective_courses
-        st.write("Files uploaded successfully. Processing data...")
-        
-        modules = pd.read_csv(uploaded_file_modules)
-        compulsory_courses = pd.read_csv(uploaded_file_compulsory)
-        elective_submodules = pd.read_csv(uploaded_file_elective_submodules)
-        elective_courses = pd.read_csv(uploaded_file_elective_courses)
-    else:
-        st.warning("Please upload all CSV files.")
-        modules = compulsory_courses = elective_submodules = elective_courses = None
-else:
-    uploaded_file_modules = st.session_state.uploaded_file_modules
-    uploaded_file_compulsory = st.session_state.uploaded_file_compulsory
-    uploaded_file_elective_submodules = st.session_state.uploaded_file_elective_submodules
-    uploaded_file_elective_courses = st.session_state.uploaded_file_elective_courses
-
-    if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_submodules, uploaded_file_elective_courses]):
-        st.write("Using the last uploaded files.")
-        modules = pd.read_csv(uploaded_file_modules)
-        compulsory_courses = pd.read_csv(uploaded_file_compulsory)
-        elective_submodules = pd.read_csv(uploaded_file_elective_submodules)
-        elective_courses = pd.read_csv(uploaded_file_elective_courses)
-    else:
-        st.warning("No previously uploaded files found. Please upload new files or use repository files.")
-        modules = compulsory_courses = elective_submodules = elective_courses = None
-
-# Process and display data if available
-if all([isinstance(df, pd.DataFrame) and not df.empty for df in [modules, compulsory_courses, elective_submodules, elective_courses]]):
-    st.write("Data loaded successfully.")
+if all([df is not None for df in [modules, compulsory_courses, elective_submodules, elective_courses]]):
+    st.success("Data loaded successfully from the repository.")
 
     # Calculate ECTS for compulsory and elective modules
     compulsory_done = compulsory_courses[compulsory_courses['status'] == 'Done']['ects'].sum()
@@ -122,59 +68,47 @@ if all([isinstance(df, pd.DataFrame) and not df.empty for df in [modules, compul
     pending_percentages = [compulsory_pending_percent, elective_pending_percent]
 
     # Create the stacked bar chart
-    try:
-        fig_stacked_bar = go.Figure()
+    fig_stacked_bar = go.Figure()
 
-        # Add bars for each status
-        fig_stacked_bar.add_trace(go.Bar(
-            name='Done', x=categories, y=done_percentages,
-            text=[f'{p:.1f}%' for p in done_percentages], textposition='inside',
-            marker_color='#2ecc71'
-        ))
-        fig_stacked_bar.add_trace(go.Bar(
-            name='In Progress', x=categories, y=in_progress_percentages,
-            text=[f'{p:.1f}%' for p in in_progress_percentages], textposition='inside',
-            marker_color='#f39c12'
-        ))
-        fig_stacked_bar.add_trace(go.Bar(
-            name='Pending', x=categories, y=pending_percentages,
-            text=[f'{p:.1f}%' for p in pending_percentages], textposition='inside',
-            marker_color='#e74c3c'
-        ))
+    fig_stacked_bar.add_trace(go.Bar(
+        name='Done', x=categories, y=done_percentages,
+        text=[f'{p:.1f}%' for p in done_percentages], textposition='inside',
+        marker_color='#2ecc71'
+    ))
+    fig_stacked_bar.add_trace(go.Bar(
+        name='In Progress', x=categories, y=in_progress_percentages,
+        text=[f'{p:.1f}%' for p in in_progress_percentages], textposition='inside',
+        marker_color='#f39c12'
+    ))
+    fig_stacked_bar.add_trace(go.Bar(
+        name='Pending', x=categories, y=pending_percentages,
+        text=[f'{p:.1f}%' for p in pending_percentages], textposition='inside',
+        marker_color='#e74c3c'
+    ))
 
-        # Update layout
-        fig_stacked_bar.update_layout(
-            barmode='stack',
-            title="PhD Progress: Compulsory and Elective Modules",
-            yaxis_title="Percentage",
-            yaxis=dict(tickformat='.0%', range=[0, 100], visible=False),  # Hide Y axis
-            legend_title="Status",
-            width=700,
-            height=500,
-        )
+    fig_stacked_bar.update_layout(
+        barmode='stack',
+        title="PhD Progress: Compulsory and Elective Modules",
+        yaxis_title="Percentage",
+        yaxis=dict(tickformat='.0%', range=[0, 100], visible=False),  # Hide Y axis
+        legend_title="Status",
+        width=700,
+        height=500,
+    )
 
-        st.plotly_chart(fig_stacked_bar)
+    st.plotly_chart(fig_stacked_bar)
 
-        # Create the summary table
-        summary_data = {
-            "Category": ["Compulsory", "Elective", "Total"],
-            "Total ECTS": [f"{total_compulsory:.1f}", f"{total_elective:.1f}", f"{total_ects:.1f}"],
-            "Completed ECTS": [f"{compulsory_done:.1f}", f"{elective_done:.1f}", f"{completed_ects:.1f}"],
-            "Completion Percentage": [f"{compulsory_done_percent:.1f}%", f"{elective_done_percent:.1f}%", f"{completion_percentage:.1f}%"]
-        }
+    # Create summary table
+    summary_data = {
+        "Category": ["Compulsory", "Elective", "Total"],
+        "Total ECTS": [f"{total_compulsory:.1f}", f"{total_elective:.1f}", f"{total_ects:.1f}"],
+        "Completed ECTS": [f"{compulsory_done:.1f}", f"{elective_done:.1f}", f"{completed_ects:.1f}"],
+        "Completion Percentage": [f"{compulsory_done_percent:.1f}%", f"{elective_done_percent:.1f}%", f"{completion_percentage:.1f}%"]
+    }
 
-        summary_df = pd.DataFrame(summary_data)
+    summary_df = pd.DataFrame(summary_data)
+    st.write("### Summary Table")
+    st.table(summary_df)
 
-        st.write("### Summary Table")
-        st.table(summary_df)
-
-    except Exception as e:
-        st.error(f"Error creating or displaying percentage stacked bar chart: {e}")
-        st.write("Chart data:")
-        st.write(pd.DataFrame({
-            "Category": categories * 3,
-            "Status": ["Done"] * 2 + ["In Progress"] * 2 + ["Pending"] * 2,
-            "Percentage": done_percentages + in_progress_percentages + pending_percentages
-        }))
 else:
-    st.warning("One or more DataFrames are empty or invalid. Please check your files.")
+    st.error("Failed to load data from the repository. Please check if all required CSV files are present and valid in your GitHub repository.")
