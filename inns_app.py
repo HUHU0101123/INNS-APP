@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 
-
 # Initialize session state to store the last uploaded files
 if 'uploaded_file_modules' not in st.session_state:
     st.session_state.uploaded_file_modules = None
@@ -115,7 +114,6 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
 
         # Create the stacked bar chart
         try:
-            
             fig_stacked_bar = go.Figure()
 
             # Add bars for each status
@@ -135,85 +133,37 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
                 marker_color='#e74c3c'
             ))
 
-            # Add overall completion line
-            #fig_stacked_bar.add_trace(go.Scatter(
-               # x=categories, 
-                #y=[completion_percentage] * len(categories),
-               # mode='lines+markers+text',
-               # name='Overall Completion',
-               # line=dict(color='blue', width=2, dash='dash'),
-               # marker=dict(size=8),
-               # text=[f'{completion_percentage:.1f}%'] * len(categories),
-                #textposition='top right',
-                #hoverinfo='none'  # Disable hover information
-           # ))
-
             # Update layout
             fig_stacked_bar.update_layout(
                 barmode='stack',
                 title="PhD Progress: Compulsory and Elective Modules",
                 xaxis_title="Module Type",
                 yaxis_title="Percentage",
-                yaxis=dict(tickformat='.0%', range=[0, 100], visible=False),  # Hide Y axis
+                yaxis=dict(tickformat='.0%', range=[0, 100]),  # Visible Y axis
                 legend_title="Status",
                 width=700,
                 height=500,
             )
 
-            
             st.plotly_chart(fig_stacked_bar)
-            
 
-            st.write("## Summary Table")
-
-            # Create three columns
-            col1, col2, col3 = st.columns(3)
-            
-            # Compulsory Courses
-            with col1:
-                st.markdown("### Compulsory Courses")
-                st.metric("Total ECTS", f"{total_compulsory:.1f}")
-                st.metric("Completed ECTS", f"{compulsory_done:.1f}")
-                st.progress(compulsory_done_percent / 100)
-                st.markdown(f"**Completion: {compulsory_done_percent:.1f}%**")
-                
-                # Display completed compulsory courses
-                st.markdown("#### Completed Courses")
-                completed_compulsory = compulsory_courses[compulsory_courses['status'] == 'Done']
-                for _, course in completed_compulsory.iterrows():
-                    st.markdown(f"- {course['course']} ({course['ects']} ECTS)")
-            
-            # Elective Courses
-            with col2:
-                st.markdown("### Elective Courses")
-                st.metric("Total ECTS", f"{total_elective:.1f}")
-                st.metric("Completed ECTS", f"{elective_done:.1f}")
-                st.progress(elective_done_percent / 100)
-                st.markdown(f"**Completion: {elective_done_percent:.1f}%**")
-                
-                # Display completed elective courses
-                st.markdown("#### Completed Courses")
-                completed_elective = elective_courses[elective_courses['status'] == 'Done']
-                for _, course in completed_elective.iterrows():
-                    st.markdown(f"- {course['course']} ({course['ects']} ECTS)")
-            
-            # Overall Progress
-            with col3:
-                st.markdown("### Overall Progress")
-                st.metric("Total ECTS", f"{total_ects:.1f}")
-                st.metric("Completed ECTS", f"{completed_ects:.1f}")
-                st.progress(completion_percentage / 100)
-                st.markdown(f"**Overall Completion: {completion_percentage:.1f}%**")
-                
-                # Display elective submodules
-                st.markdown("#### Elective Submodules")
-                for _, submodule in elective_submodules.iterrows():
-                    st.markdown(f"- {submodule['submodule']} ({submodule['ects']} ECTS)")
-
-
-
-#REST OF THE CODE
-        
+            # Display a detailed summary table with sub-modules/courses
+            summary_data = {
+                "Category": ["Compulsory", "Elective"],
+                "Sub-modules/Courses": [
+                    ", ".join(compulsory_courses['course_name'] + " (" + compulsory_courses['ects'].astype(str) + " ECTS)"),
+                    ", ".join(elective_courses['course_name'] + " (" + elective_courses['ects'].astype(str) + " ECTS)")
+                ],
+                "Total ECTS": [total_compulsory, total_elective],
+                "Completed ECTS": [compulsory_done, elective_done],
+                "Completion Percentage": [f"{compulsory_done_percent:.1f}%", f"{elective_done_percent:.1f}%"]
+            }
+            summary_df = pd.DataFrame(summary_data)
+            st.write("### Detailed Summary Table")
+            st.dataframe(summary_df.style.set_properties(**{'text-align': 'left'}).set_table_styles([{
+                'selector': 'th',
+                'props': [('font-size', '16px'), ('text-align', 'left')]
+            }]))
 
         except Exception as e:
             st.error(f"Error creating or displaying percentage stacked bar chart: {e}")
