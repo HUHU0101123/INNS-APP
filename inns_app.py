@@ -137,43 +137,56 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
             elective_done, elective_in_progress, elective_pending
         ]
 
-        # Create the Treemap chart
-        try:
-            st.write("Attempting to create Treemap chart...")
-            fig_treemap = go.Figure(go.Treemap(
-                labels=labels,
-                parents=parents,
-                values=values,
-                textinfo="label+value",
-                hoverinfo="label+value+percent parent+percent root",
-                marker=dict(
-                    colorscale='Viridis'
-                ),
-            ))
+        # Prepare data for the stacked bar chart
+        categories = ['Compulsory', 'Elective']
+        done = [compulsory_done, elective_done]
+        in_progress = [compulsory_in_progress, elective_in_progress]
+        pending = [compulsory_pending, elective_pending]
 
-            fig_treemap.update_layout(
+        # Create the stacked bar chart
+        try:
+            st.write("Attempting to create stacked bar chart...")
+            fig_stacked_bar = go.Figure(data=[
+                go.Bar(name='Done', x=categories, y=done, marker_color='#2ecc71'),
+                go.Bar(name='In Progress', x=categories, y=in_progress, marker_color='#f39c12'),
+                go.Bar(name='Pending', x=categories, y=pending, marker_color='#e74c3c')
+            ])
+
+            # Change the bar mode
+            fig_stacked_bar.update_layout(
+                barmode='stack',
                 title="PhD Progress: Compulsory and Elective Modules",
+                xaxis_title="Module Type",
+                yaxis_title="ECTS Credits",
+                legend_title="Status",
                 width=700,
-                height=700,
+                height=500,
             )
 
-            st.write("Treemap chart created successfully. Attempting to display...")
-            st.plotly_chart(fig_treemap)
-            st.write("Treemap chart should be displayed above.")
-        except Exception as e:
-            st.error(f"Error creating or displaying Treemap chart: {e}")
-            st.write("Chart data:")
-            st.write(pd.DataFrame({"labels": labels, "parents": parents, "values": values}))
+            st.write("Stacked bar chart created successfully. Attempting to display...")
+            st.plotly_chart(fig_stacked_bar)
+            st.write("Stacked bar chart should be displayed above.")
 
-        # Add a simple bar chart as a fallback
-        st.write("Displaying a simple bar chart as a fallback:")
-        bar_data = pd.DataFrame({
-            'Category': ['Compulsory Done', 'Compulsory In Progress', 'Compulsory Pending', 
-                         'Elective Done', 'Elective In Progress', 'Elective Pending'],
-            'ECTS': [compulsory_done, compulsory_in_progress, compulsory_pending, 
-                     elective_done, elective_in_progress, elective_pending]
-        })
-        st.bar_chart(bar_data.set_index('Category'))
+            # Display total ECTS and completion percentage
+            total_ects = sum(done) + sum(in_progress) + sum(pending)
+            completed_ects = sum(done)
+            completion_percentage = (completed_ects / total_ects) * 100 if total_ects > 0 else 0
+
+            st.write(f"Total ECTS: {total_ects}")
+            st.write(f"Completed ECTS: {completed_ects}")
+            st.write(f"Completion Percentage: {completion_percentage:.2f}%")
+
+            # Display a progress bar
+            st.progress(completion_percentage / 100)
+
+        except Exception as e:
+            st.error(f"Error creating or displaying stacked bar chart: {e}")
+            st.write("Chart data:")
+            st.write(pd.DataFrame({
+                "Category": categories * 3,
+                "Status": ["Done"] * 2 + ["In Progress"] * 2 + ["Pending"] * 2,
+                "ECTS": done + in_progress + pending
+            }))
 
     else:
         st.warning("One or more DataFrames are empty. Please check your CSV files.")
