@@ -113,50 +113,67 @@ if all([df is not None for df in [modules, compulsory_courses, elective_submodul
     st.plotly_chart(fig_stacked_bar)
 
     # Create summary table
-    summary_data = {
-    "Category": ["Compulsory", "Elective", "Total"],
-    "Total ECTS": [total_compulsory, total_elective, total_ects],
-    "Completed ECTS": [compulsory_done, elective_done, completed_ects],
-    "Completion Percentage": [compulsory_done_percent, elective_done_percent, completion_percentage]
-    }
-    
     summary_df = pd.DataFrame(summary_data)
-    
+
     # Custom CSS to style the table
     st.markdown("""
     <style>
-        .dataframe th {
-            background-color: #4CAF50; /* Green */
-            color: white;
-            text-align: center;
-            font-weight: bold;
-            border: 1px solid #ddd;
+        .dataframe thead th {
+            background-color: #4CAF50; /* Green background */
+            color: white; /* White text */
+            text-align: center; /* Center align text */
+            font-weight: bold; /* Bold text */
+            border: 1px solid #ddd; /* Light grey border */
+        }
+        .dataframe tbody tr:nth-child(even) {
+            background-color: #f2f2f2; /* Light grey for even rows */
+        }
+        .dataframe tbody tr:nth-child(odd) {
+            background-color: #ffffff; /* White for odd rows */
+        }
+        .dataframe tbody tr:hover {
+            background-color: #ddd; /* Light grey on hover */
         }
         .dataframe td {
-            text-align: center;
-            padding: 10px;
-            border: 1px solid #ddd;
-        }
-        .dataframe tr:nth-child(even) {
-            background-color: #f2f2f2; /* Light grey */
-        }
-        .dataframe tr:hover {
-            background-color: #ddd; /* Darker grey on hover */
+            text-align: center; /* Center align text in cells */
+            padding: 10px; /* Padding around text */
+            border: 1px solid #ddd; /* Light grey border for cells */
         }
         .dataframe {
-            border-collapse: collapse;
-            width: 100%;
+            border-collapse: collapse; /* Collapse borders */
+            width: 100%; /* Full width */
         }
     </style>
     """, unsafe_allow_html=True)
     
-    # Display the table with a custom header
-    st.markdown("## Summary Table")
-    st.table(summary_df.style.format({
-        'Total ECTS': '{:.1f}',
-        'Completed ECTS': '{:.1f}',
-        'Completion Percentage': '{:.1f}%'
-    }))
+    # Apply conditional formatting and styling to the DataFrame
+    styled_df = summary_df.style \
+        .format({
+            'Total ECTS': '{:.1f}',
+            'Completed ECTS': '{:.1f}',
+            'Completion Percentage': '{:.1f}%'
+        }) \
+        .applymap(lambda x: 'color: red;' if isinstance(x, (int, float)) and x < 50 else '', subset=['Completion Percentage']) \
+        .set_table_styles([{
+            'selector': 'thead th',
+            'props': [('background-color', '#4CAF50'), ('color', 'white'), ('font-weight', 'bold'), ('text-align', 'center')]
+        }, {
+            'selector': 'tbody tr:nth-child(even)',
+            'props': [('background-color', '#f2f2f2')]
+        }, {
+            'selector': 'tbody tr:nth-child(odd)',
+            'props': [('background-color', '#ffffff')]
+        }, {
+            'selector': 'tbody tr:hover',
+            'props': [('background-color', '#ddd')]
+        }, {
+            'selector': 'td',
+            'props': [('text-align', 'center'), ('padding', '10px'), ('border', '1px solid #ddd')]
+        }]) \
+        .hide(axis='index')
+    
+    # Display the styled DataFrame
+    st.dataframe(styled_df, use_container_width=True)
 
 else:
     st.error("Failed to load data from the repository. Please check if all required CSV files are present and valid in your GitHub repository.")
