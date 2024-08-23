@@ -151,7 +151,7 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
             fig_stacked_bar.update_layout(
                 barmode='stack',
                 title="PhD Progress: Compulsory and Elective Modules",
-                xaxis_title="Module Type",
+                #xaxis_title="Module Type",
                 yaxis_title="Percentage",
                 yaxis=dict(tickformat='.0%', range=[0, 100], visible=False),  # Hide Y axis
                 legend_title="Status",
