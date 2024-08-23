@@ -166,15 +166,15 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
             # Crear el diccionario con los datos
             summary_data = {
                 "Category": ["Compulsory", "Elective", "Total"],
-                "Total ECTS": [total_compulsory, total_elective, total_ects],
-                "Completed ECTS": [compulsory_done, elective_done, completed_ects],
+                "Total ECTS": [f"{total_compulsory:.1f}", f"{total_elective:.1f}", f"{total_ects:.1f}"],
+                "Completed ECTS": [f"{compulsory_done:.1f}", f"{elective_done:.1f}", f"{completed_ects:.1f}"],
                 "Completion Percentage": [f"{compulsory_done_percent:.1f}%", f"{elective_done_percent:.1f}%", f"{completion_percentage:.1f}%"]
             }
             
             # Crear un DataFrame de pandas
             summary_df = pd.DataFrame(summary_data)
             
-            # Mostrar la tabla en Streamlit
+            # Mostrar la tabla en Streamlit con formato mejorado
             st.write("### Summary Table")
             st.table(summary_df)
 
