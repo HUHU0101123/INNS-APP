@@ -1,0 +1,15 @@
+module_name,required_ects,current_ects,status,notes
+Dissertation,147.5,0,Not Started,Main component of the PhD
+Compulsory Modules,22.5,5,In Progress,Total for all compulsory modules
+Methodologische Grundlagen,5,5,Done,Compulsory module
+Quantitative Foschungsmethoden,5,0,Current Semester,Compulsory module
+Qualitative Forschungsmethoden,5,0,Current Semester,Compulsory module
+Professionelle Development,5,0,Not Started,Compulsory module
+Verteidigung der Dissertation,2.5,0,Not Started,Compulsory module
+Elective Modules,10,2.5,In Progress,Total for all elective modules (max 10 ECTS)
+Generic Competences,5,2.5,In Progress,Elective group (max 5 ECTS)
+Time Management,2.5,2.5,Done,Part of Generic Competences
+Körpersprache,2.5,0,Current Semester,Part of Generic Competences
+Specific Research Methods,5,0,Not Started,Elective group (max 5 ECTS)
+PhD Research Seminar,5,0,Not Started,Elective group (max 5 ECTS)
+Scientific Discourse,5,0,Not Started,Elective group (max 5 ECTS)
