@@ -10,12 +10,8 @@ if uploaded_file is not None:
     # Load data from the uploaded file
     @st.cache_data
     def load_data(file):
-        try:
-            # Try loading with default comma separator
-            modules = pd.read_csv(file)
-        except pd.errors.ParserError:
-            # If there's a parsing error, try with semicolon
-            modules = pd.read_csv(file, delimiter=';')
+        # Load the data using the correct delimiter
+        modules = pd.read_csv(file, delimiter=';')
         
         # Remove any leading/trailing whitespace from column names
         modules.columns = modules.columns.str.strip()
