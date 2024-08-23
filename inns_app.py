@@ -35,8 +35,8 @@ if uploaded_file is not None:
     @st.cache_data
     def load_data(file):
         try:
-            # Attempt to load the data using the correct delimiter
-            modules = pd.read_csv(file, delimiter=';')
+            # Attempt to load the data using the correct delimiter and encoding
+            modules = pd.read_csv(file, delimiter=';', encoding='utf-8')
 
             # Remove any leading/trailing whitespace from column names
             modules.columns = modules.columns.str.strip()
@@ -49,6 +49,18 @@ if uploaded_file is not None:
         except pd.errors.EmptyDataError:
             st.error("The uploaded file is empty or invalid. Please upload a valid CSV file.")
             return pd.DataFrame()  # Return an empty DataFrame
+        
+        except UnicodeDecodeError:
+            st.warning("UnicodeDecodeError: Trying with a different encoding (ISO-8859-1).")
+            try:
+                # Try reading with a different encoding
+                modules = pd.read_csv(file, delimiter=';', encoding='ISO-8859-1')
+                modules.columns = modules.columns.str.strip()
+                st.write("Column Names Found (with different encoding):", modules.columns.tolist())
+                return modules
+            except Exception as e:
+                st.error(f"Failed to load file with different encoding. Error: {e}")
+                return pd.DataFrame()  # Return an empty DataFrame
 
     modules = load_data(uploaded_file)
 
