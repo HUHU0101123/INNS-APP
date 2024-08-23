@@ -16,6 +16,7 @@ file_option = st.radio(
 
 if file_option == "Upload a new file":
     uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
+    
     # If a new file is uploaded, update session state
     if uploaded_file is not None:
         st.session_state.uploaded_file = uploaded_file
@@ -30,7 +31,7 @@ else:
 
 # Load and display data if a file is available
 if uploaded_file is not None:
-    # Load data from the uploaded file
+
     @st.cache_data
     def load_data(file):
         try:
@@ -52,12 +53,12 @@ if uploaded_file is not None:
             except pd.errors.EmptyDataError:
                 st.error("The uploaded file is empty or invalid after trying with ISO-8859-1. Please check the file content.")
                 return pd.DataFrame()  # Return an empty DataFrame
-        except pd.errors.ParserError:
-            st.error("ParserError: The uploaded file could not be parsed. Please check the file content and format.")
-            return pd.DataFrame()  # Return an empty DataFrame
-        except Exception as e:
-            st.error(f"Failed to load file with different encoding. Error: {e}")
-            return pd.DataFrame()  # Return an empty DataFrame
+            except pd.errors.ParserError:
+                st.error("ParserError: The uploaded file could not be parsed. Please check the file content and format.")
+                return pd.DataFrame()  # Return an empty DataFrame
+            except Exception as e:
+                st.error(f"Failed to load file with different encoding. Error: {e}")
+                return pd.DataFrame()  # Return an empty DataFrame
 
     modules = load_data(uploaded_file)
 
@@ -71,5 +72,5 @@ if uploaded_file is not None:
         else:
             st.error("The uploaded CSV file is missing one or more required columns. Please ensure it contains 'current_ects', 'module_name', 'required_ects', 'status', and 'notes'.")
             st.write("Available columns:", modules.columns.tolist())
-    else:
-        st.warning("Please upload a CSV file to continue.")
+else:
+    st.warning("Please upload a CSV file to continue.")
