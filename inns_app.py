@@ -73,22 +73,54 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
     if not any(df.empty for df in [modules, compulsory_courses, elective_submodules, elective_courses]):
         st.write("Data loaded successfully. Let's explore your PhD progress!")
 
-        # Calculate total ECTS (excluding dissertation)
-        total_ects = modules[modules['module_name'] != 'Dissertation']['required_ects'].sum()
-
-        # Calculate ECTS for compulsory modules
+        # Calculate ECTS for compulsory and elective modules
         compulsory_done = compulsory_courses[compulsory_courses['status'] == 'Done']['ects'].sum()
         compulsory_in_progress = compulsory_courses[compulsory_courses['status'] == 'Current Semester']['ects'].sum()
         compulsory_pending = compulsory_courses[compulsory_courses['status'] == 'Not Started']['ects'].sum()
 
-        # Calculate ECTS for elective modules
-        elective_done = elective_courses[elective_courses['status'] == 'Done']['ects'].sum()
-        elective_in_progress = elective_courses[elective_courses['status'] == 'Current Semester']['ects'].sum()
-        
-        # Ensure elective ECTS don't exceed 5 per submodule and 10 in total
-        elective_done = min(elective_done, 10)
-        elective_in_progress = min(elective_in_progress, 10 - elective_done)
+        elective_done = min(elective_courses[elective_courses['status'] == 'Done']['ects'].sum(), 10)
+        elective_in_progress = min(elective_courses[elective_courses['status'] == 'Current Semester']['ects'].sum(), 10 - elective_done)
         elective_pending = max(0, 10 - elective_done - elective_in_progress)
+
+        # Create data for the sunburst chart
+        labels = [
+            "PhD Progress", "Compulsory Modules", "Elective Modules",
+            "Compulsory Done", "Compulsory In Progress", "Compulsory Pending",
+            "Elective Done", "Elective In Progress", "Elective Pending"
+        ]
+        parents = [
+            "", "PhD Progress", "PhD Progress",
+            "Compulsory Modules", "Compulsory Modules", "Compulsory Modules",
+            "Elective Modules", "Elective Modules", "Elective Modules"
+        ]
+        values = [
+            0,  # PhD Progress (root)
+            compulsory_done + compulsory_in_progress + compulsory_pending,  # Compulsory Modules
+            elective_done + elective_in_progress + elective_pending,  # Elective Modules
+            compulsory_done, compulsory_in_progress, compulsory_pending,
+            elective_done, elective_in_progress, elective_pending
+        ]
+
+        # Create the sunburst chart
+        fig_sunburst = go.Figure(go.Sunburst(
+            labels=labels,
+            parents=parents,
+            values=values,
+            branchvalues="total",
+            textinfo="label+value",
+            insidetextorientation='radial'
+        ))
+
+        fig_sunburst.update_layout(
+            title="PhD Progress: Compulsory and Elective Modules",
+            width=700,
+            height=700,
+        )
+
+        st.plotly_chart(fig_sunburst)
+
+        # Calculate total ECTS
+        total_ects = modules[modules['module_name'] != 'Dissertation']['required_ects'].sum()
 
         # Prepare data for pie chart
         pie_data = pd.DataFrame({
@@ -104,7 +136,7 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
             pie_data,
             names='Status',
             values='ECTS',
-            title=f'PhD Progress (Total: {total_ects} ECTS)',
+            title=f'Overall PhD Progress (Total: {total_ects} ECTS)',
             color='Status',
             color_discrete_map={'Done': 'green', 'In Progress': 'yellow', 'Pending': 'red'},
             hover_data=['Percentage'],
