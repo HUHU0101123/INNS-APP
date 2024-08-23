@@ -2,11 +2,15 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# Initialize session state to store the last uploaded file
+# Initialize session state to store the last uploaded files
 if 'uploaded_file_modules' not in st.session_state:
     st.session_state.uploaded_file_modules = None
-if 'uploaded_file_submodules' not in st.session_state:
-    st.session_state.uploaded_file_submodules = None
+if 'uploaded_file_compulsory' not in st.session_state:
+    st.session_state.uploaded_file_compulsory = None
+if 'uploaded_file_elective_submodules' not in st.session_state:
+    st.session_state.uploaded_file_elective_submodules = None
+if 'uploaded_file_elective_courses' not in st.session_state:
+    st.session_state.uploaded_file_elective_courses = None
 
 st.title('PhD Progress Tracker')
 
@@ -18,85 +22,104 @@ file_option = st.radio(
 
 if file_option == "Upload new files":
     uploaded_file_modules = st.file_uploader("Choose the modules CSV file", type="csv", key='modules')
-    uploaded_file_submodules = st.file_uploader("Choose the submodules CSV file", type="csv", key='submodules')
+    uploaded_file_compulsory = st.file_uploader("Choose the compulsory courses CSV file", type="csv", key='compulsory')
+    uploaded_file_elective_submodules = st.file_uploader("Choose the elective submodules CSV file", type="csv", key='elective_submodules')
+    uploaded_file_elective_courses = st.file_uploader("Choose the elective courses CSV file", type="csv", key='elective_courses')
 
     # If new files are uploaded, update session state
-    if uploaded_file_modules is not None and uploaded_file_submodules is not None:
+    if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_submodules, uploaded_file_elective_courses]):
         st.session_state.uploaded_file_modules = uploaded_file_modules
-        st.session_state.uploaded_file_submodules = uploaded_file_submodules
+        st.session_state.uploaded_file_compulsory = uploaded_file_compulsory
+        st.session_state.uploaded_file_elective_submodules = uploaded_file_elective_submodules
+        st.session_state.uploaded_file_elective_courses = uploaded_file_elective_courses
         st.write("Files uploaded successfully. Processing data...")
     else:
-        st.warning("Please upload both CSV files.")
+        st.warning("Please upload all CSV files.")
 else:
     # Use the last uploaded files from session state
     uploaded_file_modules = st.session_state.uploaded_file_modules
-    uploaded_file_submodules = st.session_state.uploaded_file_submodules
+    uploaded_file_compulsory = st.session_state.uploaded_file_compulsory
+    uploaded_file_elective_submodules = st.session_state.uploaded_file_elective_submodules
+    uploaded_file_elective_courses = st.session_state.uploaded_file_elective_courses
 
-    if uploaded_file_modules and uploaded_file_submodules:
+    if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_submodules, uploaded_file_elective_courses]):
         st.write("Using the last uploaded files.")
     else:
         st.warning("No previously uploaded files found. Please upload new files.")
-        uploaded_file_modules = None
-        uploaded_file_submodules = None
+        uploaded_file_modules = uploaded_file_compulsory = uploaded_file_elective_submodules = uploaded_file_elective_courses = None
 
 # Load and display data if files are available
-if uploaded_file_modules is not None and uploaded_file_submodules is not None:
+if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_submodules, uploaded_file_elective_courses]):
     @st.cache_data
-    def load_data(file_modules, file_submodules):
+    def load_data(file_modules, file_compulsory, file_elective_submodules, file_elective_courses):
         try:
-            # Load the modules and submodules data
             modules = pd.read_csv(file_modules)
-            submodules = pd.read_csv(file_submodules)
-            return modules, submodules
+            compulsory_courses = pd.read_csv(file_compulsory)
+            elective_submodules = pd.read_csv(file_elective_submodules)
+            elective_courses = pd.read_csv(file_elective_courses)
+            return modules, compulsory_courses, elective_submodules, elective_courses
         except pd.errors.EmptyDataError:
-            st.error("One or both uploaded files are empty or invalid. Please upload valid CSV files.")
-            return pd.DataFrame(), pd.DataFrame()
+            st.error("One or more uploaded files are empty or invalid. Please upload valid CSV files.")
+            return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
         except Exception as e:
             st.error(f"Error loading files: {e}")
-            return pd.DataFrame(), pd.DataFrame()
+            return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 
-    modules, submodules = load_data(uploaded_file_modules, uploaded_file_submodules)
+    modules, compulsory_courses, elective_submodules, elective_courses = load_data(
+        uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_submodules, uploaded_file_elective_courses
+    )
 
-    if not modules.empty and not submodules.empty:
-        # Process and visualize data
-        st.write("Data loaded successfully. Ready for processing and visualization.")
+    if not any(df.empty for df in [modules, compulsory_courses, elective_submodules, elective_courses]):
+        st.write("Data loaded successfully. Processing and visualizing...")
+
+        # Calculate total ECTS (excluding dissertation)
+        total_ects = modules[modules['module_name'] != 'Dissertation']['required_ects'].sum()
+
+        # Calculate ECTS for compulsory modules
+        compulsory_done = compulsory_courses[compulsory_courses['status'] == 'Done']['ects'].sum()
+        compulsory_in_progress = compulsory_courses[compulsory_courses['status'] == 'Current Semester']['ects'].sum()
+        compulsory_pending = compulsory_courses[compulsory_courses['status'] == 'Not Started']['ects'].sum()
+
+        # Calculate ECTS for elective modules
+        elective_done = elective_courses[elective_courses['status'] == 'Done']['ects'].sum()
+        elective_in_progress = elective_courses[elective_courses['status'] == 'Current Semester']['ects'].sum()
         
-        # Summarize the total ECTS for each main module
-        main_module_summary = modules[['module_name', 'current_ects']].copy()
-        main_module_summary = main_module_summary.rename(columns={'module_name': 'Category', 'current_ects': 'ECTS'})
-        main_module_summary['Percentage'] = main_module_summary['ECTS'] / main_module_summary['ECTS'].sum() * 100
-        main_module_summary['Label'] = main_module_summary.apply(lambda x: f"{x['Category']} ({x['ECTS']} ECTS)", axis=1)
-        
-        # Pie chart of main modules progress
+        # Ensure elective ECTS don't exceed 5 per submodule and 10 in total
+        elective_done = min(elective_done, 10)
+        elective_in_progress = min(elective_in_progress, 10 - elective_done)
+        elective_pending = max(0, 10 - elective_done - elective_in_progress)
+
+        # Prepare data for pie chart
+        pie_data = pd.DataFrame({
+            'Status': ['Done', 'In Progress', 'Pending'],
+            'ECTS': [compulsory_done + elective_done, 
+                     compulsory_in_progress + elective_in_progress, 
+                     compulsory_pending + elective_pending]
+        })
+        pie_data['Percentage'] = pie_data['ECTS'] / total_ects * 100
+
+        # Create pie chart
         fig_pie = px.pie(
-            main_module_summary,
-            names='Label',
+            pie_data,
+            names='Status',
             values='Percentage',
-            title='Progress Distribution of Main Modules (Excluding Dissertation)',
+            title=f'PhD Progress (Total: {total_ects} ECTS)',
             labels={'Percentage': 'Percentage'},
             height=400
         )
         st.plotly_chart(fig_pie)
-        
-        # Summarize the ECTS for each sub-module
-        submodule_summary = submodules[['submodule_name', 'parent_module', 'current_ects']].copy()
-        submodule_summary = submodule_summary.rename(columns={'submodule_name': 'Sub-module', 'current_ects': 'ECTS'})
-        
-        # Filter sub-modules for elective modules
-        elective_submodules = submodule_summary[submodule_summary['parent_module'] == 'Elective Modules']
-        
-        # Bar chart of elective sub-modules progress
-        fig_bar = px.bar(
-            elective_submodules,
-            x='Sub-module',
-            y='ECTS',
-            title='ECTS Earned in Elective Sub-modules',
-            labels={'ECTS': 'ECTS'},
-            height=400
-        )
-        st.plotly_chart(fig_bar)
-        
-        # Additional visualizations and summaries can be added here
+
+        # Display detailed progress
+        st.subheader("Detailed Progress")
+        st.write(f"Compulsory Modules: {compulsory_done + compulsory_in_progress}/{modules[modules['module_name'] == 'Compulsory Modules']['required_ects'].values[0]} ECTS")
+        st.write(f"Elective Modules: {elective_done + elective_in_progress}/{modules[modules['module_name'] == 'Elective Modules']['required_ects'].values[0]} ECTS")
+
+        # Display elective courses progress
+        st.subheader("Elective Courses Progress")
+        for submodule in elective_submodules['submodule_name']:
+            courses = elective_courses[elective_courses['submodule'] == submodule]
+            ects_earned = min(courses[courses['status'].isin(['Done', 'Current Semester'])]['ects'].sum(), 5)
+            st.write(f"{submodule}: {ects_earned}/5 ECTS")
 
     else:
         st.warning("Please upload valid CSV files to continue.")
