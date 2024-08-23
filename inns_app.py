@@ -185,5 +185,4 @@ if all([df is not None for df in [modules, compulsory_courses, elective_submodul
 else:
     st.error("Failed to load data from the repository. Please check if all required CSV files are present and valid in your GitHub repository.")
 
-else:
-    st.error("Failed to load data from the repository. Please check if all required CSV files are present and valid in your GitHub repository.")
+
