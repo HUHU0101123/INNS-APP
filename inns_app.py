@@ -72,7 +72,6 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
     if not any(df.empty for df in [modules, compulsory_courses, elective_submodules, elective_courses]):
         st.write("Data loaded successfully. Let's explore your PhD progress!")
 
-              
         # Calculate ECTS for compulsory and elective modules
         compulsory_done = compulsory_courses[compulsory_courses['status'] == 'Done']['ects'].sum()
         compulsory_in_progress = compulsory_courses[compulsory_courses['status'] == 'Current Semester']['ects'].sum()
@@ -99,20 +98,19 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
         elective_in_progress_percent = calculate_percentage(elective_in_progress, total_elective)
         elective_pending_percent = calculate_percentage(elective_pending, total_elective)
 
-        # Debug information
-        st.write("## ECTS Calculations")
-        st.write(f"Compulsory done: {compulsory_done} ECTS ({compulsory_done_percent:.1f}%)")
-        st.write(f"Compulsory in progress: {compulsory_in_progress} ECTS ({compulsory_in_progress_percent:.1f}%)")
-        st.write(f"Compulsory pending: {compulsory_pending} ECTS ({compulsory_pending_percent:.1f}%)")
-        st.write(f"Elective done: {elective_done} ECTS ({elective_done_percent:.1f}%)")
-        st.write(f"Elective in progress: {elective_in_progress} ECTS ({elective_in_progress_percent:.1f}%)")
-        st.write(f"Elective pending: {elective_pending} ECTS ({elective_pending_percent:.1f}%)")
-
         # Prepare data for the stacked bar chart
         categories = ['Compulsory', 'Elective']
         done_percentages = [compulsory_done_percent, elective_done_percent]
         in_progress_percentages = [compulsory_in_progress_percent, elective_in_progress_percent]
         pending_percentages = [compulsory_pending_percent, elective_pending_percent]
+
+        # Count courses for each category
+        done_counts = [compulsory_courses[compulsory_courses['status'] == 'Done'].shape[0], 
+                       elective_courses[elective_courses['status'] == 'Done'].shape[0]]
+        in_progress_counts = [compulsory_courses[compulsory_courses['status'] == 'Current Semester'].shape[0], 
+                              elective_courses[elective_courses['status'] == 'Current Semester'].shape[0]]
+        pending_counts = [compulsory_courses[compulsory_courses['status'] == 'Not Started'].shape[0], 
+                          elective_courses[elective_courses['status'] == 'Not Started'].shape[0]]
 
         # Create the stacked bar chart
         try:
@@ -122,17 +120,20 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
             # Add bars for each status
             fig_stacked_bar.add_trace(go.Bar(
                 name='Done', x=categories, y=done_percentages, 
-                text=[f'{p:.1f}%' for p in done_percentages], textposition='inside',
+                text=[f'{p:.1f}% ({c})' for p, c in zip(done_percentages, done_counts)], 
+                textposition='inside',
                 marker_color='#2ecc71'
             ))
             fig_stacked_bar.add_trace(go.Bar(
                 name='In Progress', x=categories, y=in_progress_percentages, 
-                text=[f'{p:.1f}%' for p in in_progress_percentages], textposition='inside',
+                text=[f'{p:.1f}% ({c})' for p, c in zip(in_progress_percentages, in_progress_counts)], 
+                textposition='inside',
                 marker_color='#f39c12'
             ))
             fig_stacked_bar.add_trace(go.Bar(
                 name='Pending', x=categories, y=pending_percentages, 
-                text=[f'{p:.1f}%' for p in pending_percentages], textposition='inside',
+                text=[f'{p:.1f}% ({c})' for p, c in zip(pending_percentages, pending_counts)], 
+                textposition='inside',
                 marker_color='#e74c3c'
             ))
 
@@ -142,7 +143,7 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
                 title="PhD Progress: Compulsory and Elective Modules",
                 xaxis_title="Module Type",
                 yaxis_title="Percentage",
-                yaxis=dict(tickformat='.0%', range=[0, 100]),
+                yaxis=dict(tickformat='.0%', range=[0, 100], visible=False),  # Hide y-axis
                 legend_title="Status",
                 width=700,
                 height=500,
