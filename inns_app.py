@@ -35,9 +35,7 @@ if uploaded_file is not None:
     @st.cache_data
     def load_data(file):
         try:
-            # Attempt to load the data using the correct delimiter and encoding
             modules = pd.read_csv(file, delimiter=',', encoding='utf-8')
-            # Remove any leading/trailing whitespace from column names
             modules.columns = modules.columns.str.strip()
             return modules
         except pd.errors.EmptyDataError:
@@ -46,7 +44,6 @@ if uploaded_file is not None:
         except UnicodeDecodeError:
             st.warning("UnicodeDecodeError: Trying with a different encoding (ISO-8859-1).")
             try:
-                # Try reading with a different encoding
                 modules = pd.read_csv(file, delimiter=';', encoding='ISO-8859-1')
                 modules.columns = modules.columns.str.strip()
                 return modules
@@ -68,12 +65,32 @@ if uploaded_file is not None:
         if required_columns.issubset(modules.columns):
             # Data processing and visualization
             st.write("Data loaded successfully. Ready for processing and visualization.")
+            
+            # Filter out Dissertation for Pie Chart
+            progress_data = modules[modules['module_name'] != 'Dissertation'].copy()
+            progress_data['Progress'] = progress_data.apply(
+                lambda x: 'Done' if x['status'] == 'Done' 
+                          else ('In Progress' if x['status'] == 'In Progress' 
+                                else 'Not Started'),
+                axis=1
+            )
 
-            # Total ECTS Earned
-            total_ects_earned = modules['current_ects'].sum()
-            st.write(f"Total ECTS earned: {total_ects_earned}")
+            progress_aggregated = progress_data.groupby('Progress').agg(
+                total_current_ects=('current_ects', 'sum'),
+                total_required_ects=('required_ects', 'sum')
+            ).reset_index()
+            
+            fig_pie = px.pie(
+                progress_aggregated,
+                names='Progress',
+                values='total_current_ects',
+                title='Progress Distribution (Excluding Dissertation)',
+                labels={'total_current_ects': 'ECTS'},
+                height=400
+            )
+            st.plotly_chart(fig_pie)
 
-            # ECTS Earned vs. Required
+            # Total ECTS Earned vs. Required
             fig1 = px.bar(modules, x='module_name', y=['current_ects', 'required_ects'],
                           title='ECTS Earned vs. Required',
                           labels={'value': 'ECTS', 'variable': 'Type'},
@@ -92,3 +109,4 @@ if uploaded_file is not None:
             st.write("Available columns:", modules.columns.tolist())
     else:
         st.warning("Please upload a CSV file to continue.")
+
