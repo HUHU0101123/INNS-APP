@@ -76,7 +76,6 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
         compulsory_done = compulsory_courses[compulsory_courses['status'] == 'Done']['ects'].sum()
         compulsory_in_progress = compulsory_courses[compulsory_courses['status'] == 'Current Semester']['ects'].sum()
         compulsory_pending = compulsory_courses[compulsory_courses['status'] == 'Not Started']['ects'].sum()
-
         elective_done = elective_courses[elective_courses['status'] == 'Done']['ects'].sum()
         elective_in_progress = elective_courses[elective_courses['status'] == 'Current Semester']['ects'].sum()
         elective_total = elective_done + elective_in_progress
@@ -93,7 +92,6 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
         compulsory_done_percent = calculate_percentage(compulsory_done, total_compulsory)
         compulsory_in_progress_percent = calculate_percentage(compulsory_in_progress, total_compulsory)
         compulsory_pending_percent = calculate_percentage(compulsory_pending, total_compulsory)
-
         elective_done_percent = calculate_percentage(elective_done, total_elective)
         elective_in_progress_percent = calculate_percentage(elective_in_progress, total_elective)
         elective_pending_percent = calculate_percentage(elective_pending, total_elective)
@@ -114,44 +112,29 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
 
         # Create the stacked bar chart
         try:
-            
             fig_stacked_bar = go.Figure()
 
             # Add bars for each status
             fig_stacked_bar.add_trace(go.Bar(
-                name='Done', x=categories, y=done_percentages, 
+                name='Done', x=categories, y=done_percentages,
                 text=[f'{p:.1f}%' for p in done_percentages], textposition='inside',
                 marker_color='#2ecc71'
             ))
             fig_stacked_bar.add_trace(go.Bar(
-                name='In Progress', x=categories, y=in_progress_percentages, 
+                name='In Progress', x=categories, y=in_progress_percentages,
                 text=[f'{p:.1f}%' for p in in_progress_percentages], textposition='inside',
                 marker_color='#f39c12'
             ))
             fig_stacked_bar.add_trace(go.Bar(
-                name='Pending', x=categories, y=pending_percentages, 
+                name='Pending', x=categories, y=pending_percentages,
                 text=[f'{p:.1f}%' for p in pending_percentages], textposition='inside',
                 marker_color='#e74c3c'
             ))
-
-            # Add overall completion line
-            #fig_stacked_bar.add_trace(go.Scatter(
-               # x=categories, 
-                #y=[completion_percentage] * len(categories),
-               # mode='lines+markers+text',
-               # name='Overall Completion',
-               # line=dict(color='blue', width=2, dash='dash'),
-               # marker=dict(size=8),
-               # text=[f'{completion_percentage:.1f}%'] * len(categories),
-                #textposition='top right',
-                #hoverinfo='none'  # Disable hover information
-           # ))
 
             # Update layout
             fig_stacked_bar.update_layout(
                 barmode='stack',
                 title="PhD Progress: Compulsory and Elective Modules",
-                #xaxis_title="Module Type",
                 yaxis_title="Percentage",
                 yaxis=dict(tickformat='.0%', range=[0, 100], visible=False),  # Hide Y axis
                 legend_title="Status",
@@ -159,22 +142,20 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
                 height=500,
             )
 
-            
             st.plotly_chart(fig_stacked_bar)
-            
 
-            # Crear el diccionario con los datos
+            # Create the dictionary with the data
             summary_data = {
                 "Category": ["Compulsory", "Elective", "Total"],
                 "Total ECTS": [f"{total_compulsory:.1f}", f"{total_elective:.1f}", f"{total_ects:.1f}"],
                 "Completed ECTS": [f"{compulsory_done:.1f}", f"{elective_done:.1f}", f"{completed_ects:.1f}"],
                 "Completion Percentage": [f"{compulsory_done_percent:.1f}%", f"{elective_done_percent:.1f}%", f"{completion_percentage:.1f}%"]
             }
-            
-            # Crear un DataFrame de pandas
+
+            # Create a pandas DataFrame
             summary_df = pd.DataFrame(summary_data)
-            
-            # Mostrar la tabla en Streamlit con formato mejorado
+
+            # Display the table in Streamlit with improved formatting
             st.write("### Summary Table")
             st.table(summary_df)
 
@@ -186,9 +167,7 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
                 "Status": ["Done"] * 2 + ["In Progress"] * 2 + ["Pending"] * 2,
                 "Percentage": done_percentages + in_progress_percentages + pending_percentages
             }))
-
     else:
         st.warning("One or more DataFrames are empty. Please check your CSV files.")
 else:
     st.warning("Please upload all required CSV files to proceed.")
-
