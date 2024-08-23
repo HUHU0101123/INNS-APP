@@ -107,7 +107,7 @@ if all([df is not None for df in [modules, compulsory_courses, elective_submodul
         height=500,
     )
 
-st.plotly_chart(fig_stacked_bar)
+    st.plotly_chart(fig_stacked_bar)
 
     # Create summary table
     summary_data = {
