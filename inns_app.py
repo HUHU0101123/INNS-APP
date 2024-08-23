@@ -114,10 +114,10 @@ if all([df is not None for df in [modules, compulsory_courses, elective_submodul
 
     # Create summary table
     summary_data = {
-        "Category": ["Compulsory", "Elective", "Total"],
-        "Total ECTS": [total_compulsory, total_elective, total_ects],
-        "Completed ECTS": [compulsory_done, elective_done, completed_ects],
-        "Completion Percentage": [compulsory_done_percent, elective_done_percent, completion_percentage]
+    "Category": ["Compulsory", "Elective", "Total"],
+    "Total ECTS": [total_compulsory, total_elective, total_ects],
+    "Completed ECTS": [compulsory_done, elective_done, completed_ects],
+    "Completion Percentage": [compulsory_done_percent, elective_done_percent, completion_percentage]
     }
     
     summary_df = pd.DataFrame(summary_data)
@@ -129,10 +129,13 @@ if all([df is not None for df in [modules, compulsory_courses, elective_submodul
             background-color: #4CAF50; /* Green */
             color: white;
             text-align: center;
+            font-weight: bold;
+            border: 1px solid #ddd;
         }
         .dataframe td {
             text-align: center;
             padding: 10px;
+            border: 1px solid #ddd;
         }
         .dataframe tr:nth-child(even) {
             background-color: #f2f2f2; /* Light grey */
@@ -140,11 +143,15 @@ if all([df is not None for df in [modules, compulsory_courses, elective_submodul
         .dataframe tr:hover {
             background-color: #ddd; /* Darker grey on hover */
         }
+        .dataframe {
+            border-collapse: collapse;
+            width: 100%;
+        }
     </style>
     """, unsafe_allow_html=True)
     
     # Display the table with a custom header
-    st.markdown("## 📊 Summary Table")
+    st.markdown("## Summary Table")
     st.table(summary_df.style.format({
         'Total ECTS': '{:.1f}',
         'Completed ECTS': '{:.1f}',
