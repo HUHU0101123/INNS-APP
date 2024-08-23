@@ -81,7 +81,7 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
         elective_in_progress = min(elective_courses[elective_courses['status'] == 'Current Semester']['ects'].sum(), 10 - elective_done)
         elective_pending = max(0, 10 - elective_done - elective_in_progress)
 
-        # Create data for the sunburst chart
+        # Prepare data for the sunburst chart
         labels = [
             "PhD Progress", "Compulsory Modules", "Elective Modules",
             "Compulsory Done", "Compulsory In Progress", "Compulsory Pending",
@@ -117,69 +117,6 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
         )
 
         st.plotly_chart(fig_sunburst)
-
-        # Storytelling
-        st.subheader("Your PhD Journey So Far")
-        total_done = compulsory_done + elective_done
-        total_in_progress = compulsory_in_progress + elective_in_progress
-        total_pending = compulsory_pending + elective_pending
-        
-        if total_ects > 0:
-            st.write(f"You've completed {total_done:.1f} ECTS out of the required {total_ects} ECTS, which is {(total_done/total_ects)*100:.1f}% of your coursework.")
-        else:
-            st.write("Total ECTS required is not defined. Please check your data.")
-        
-        st.write(f"Currently, you're working on {total_in_progress:.1f} ECTS, and have {total_pending:.1f} ECTS pending.")
-        
-        if total_done > (total_ects / 2):
-            st.write("Great job! You're more than halfway through your coursework.")
-        elif total_done + total_in_progress > (total_ects / 2):
-            st.write("You're making good progress. Keep up the good work!")
-        else:
-            st.write("You're in the early stages of your PhD journey. Stay focused and keep moving forward!")
-
-        # Display detailed progress table
-        st.subheader("Detailed Progress")
-        progress_table = pd.DataFrame({
-            'Module': ['Compulsory Modules', 'Elective Modules'],
-            'Done': [compulsory_done, elective_done],
-            'In Progress': [compulsory_in_progress, elective_in_progress],
-            'Pending': [compulsory_pending, elective_pending],
-            'Total Required': [22.5, 10]
-        })
-        progress_table['Completion %'] = (progress_table['Done'] / progress_table['Total Required']) * 100
-        st.table(progress_table.style.format({'Done': '{:.1f}', 'In Progress': '{:.1f}', 'Pending': '{:.1f}', 'Completion %': '{:.1f}%'}))
-
-        # Display elective courses progress
-        st.subheader("Elective Courses Progress")
-        fig_electives = go.Figure()
-        for submodule in elective_submodules['submodule_name']:
-            courses = elective_courses[elective_courses['submodule'] == submodule]
-            ects_earned = min(courses[courses['status'].isin(['Done', 'Current Semester'])]['ects'].sum(), 5)
-            fig_electives.add_trace(go.Bar(
-                x=[submodule],
-                y=[ects_earned],
-                name=submodule,
-                text=[f"{ects_earned}/5 ECTS"],
-                textposition='auto'
-            ))
-        fig_electives.update_layout(
-            title="Elective Submodules Progress",
-            xaxis_title="Submodule",
-            yaxis_title="ECTS Earned",
-            yaxis_range=[0, 5],
-            height=400
-        )
-        st.plotly_chart(fig_electives)
-
-        # Advice based on progress
-        st.subheader("Next Steps")
-        if elective_done + elective_in_progress < 10:
-            st.write("Consider enrolling in more elective courses to reach the required 10 ECTS.")
-        if compulsory_done + compulsory_in_progress < 22.5:
-            st.write("Focus on completing your remaining compulsory modules.")
-        if total_done + total_in_progress >= total_ects:
-            st.write("Great job on your coursework! It's time to focus on your dissertation.")
 
     else:
         st.warning("Please upload valid CSV files to continue.")
