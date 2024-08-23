@@ -72,14 +72,30 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
     if not any(df.empty for df in [modules, compulsory_courses, elective_submodules, elective_courses]):
         st.write("Data loaded successfully. Let's explore your PhD progress!")
 
+        # Debug information
+        st.write("## Debug Information")
+        st.write(f"Modules shape: {modules.shape}")
+        st.write(f"Compulsory courses shape: {compulsory_courses.shape}")
+        st.write(f"Elective submodules shape: {elective_submodules.shape}")
+        st.write(f"Elective courses shape: {elective_courses.shape}")
+
         # Calculate ECTS for compulsory and elective modules
         compulsory_done = compulsory_courses[compulsory_courses['status'] == 'Done']['ects'].sum()
         compulsory_in_progress = compulsory_courses[compulsory_courses['status'] == 'Current Semester']['ects'].sum()
         compulsory_pending = compulsory_courses[compulsory_courses['status'] == 'Not Started']['ects'].sum()
 
-        elective_done = min(elective_courses[elective_courses['status'] == 'Done']['ects'].sum(), 10)
-        elective_in_progress = min(elective_courses[elective_courses['status'] == 'Current Semester']['ects'].sum(), 10 - elective_done)
-        elective_pending = max(0, 10 - elective_done - elective_in_progress)
+        elective_done = elective_courses[elective_courses['status'] == 'Done']['ects'].sum()
+        elective_in_progress = elective_courses[elective_courses['status'] == 'Current Semester']['ects'].sum()
+        elective_pending = elective_courses[elective_courses['status'] == 'Not Started']['ects'].sum()
+
+        # More debug information
+        st.write("## ECTS Calculations")
+        st.write(f"Compulsory done: {compulsory_done}")
+        st.write(f"Compulsory in progress: {compulsory_in_progress}")
+        st.write(f"Compulsory pending: {compulsory_pending}")
+        st.write(f"Elective done: {elective_done}")
+        st.write(f"Elective in progress: {elective_in_progress}")
+        st.write(f"Elective pending: {elective_pending}")
 
         # Prepare data for the sunburst chart
         labels = [
@@ -93,7 +109,7 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
             "Elective Modules", "Elective Modules", "Elective Modules"
         ]
         values = [
-            0,  # PhD Progress (root)
+            1,  # PhD Progress (root)
             compulsory_done + compulsory_in_progress + compulsory_pending,  # Compulsory Modules
             elective_done + elective_in_progress + elective_pending,  # Elective Modules
             compulsory_done, compulsory_in_progress, compulsory_pending,
@@ -101,24 +117,29 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
         ]
 
         # Create the sunburst chart
-        fig_sunburst = go.Figure(go.Sunburst(
-            labels=labels,
-            parents=parents,
-            values=values,
-            branchvalues="total",
-            textinfo="label+value",
-            insidetextorientation='radial'
-        ))
+        try:
+            fig_sunburst = go.Figure(go.Sunburst(
+                labels=labels,
+                parents=parents,
+                values=values,
+                branchvalues="total",
+                textinfo="label+value",
+                insidetextorientation='radial'
+            ))
 
-        fig_sunburst.update_layout(
-            title="PhD Progress: Compulsory and Elective Modules",
-            width=700,
-            height=700,
-        )
+            fig_sunburst.update_layout(
+                title="PhD Progress: Compulsory and Elective Modules",
+                width=700,
+                height=700,
+            )
 
-        st.plotly_chart(fig_sunburst)
+            st.plotly_chart(fig_sunburst)
+        except Exception as e:
+            st.error(f"Error creating sunburst chart: {e}")
+            st.write("Chart data:")
+            st.write(pd.DataFrame({"labels": labels, "parents": parents, "values": values}))
 
     else:
-        st.warning("Please upload valid CSV files to continue.")
+        st.warning("One or more DataFrames are empty. Please check your CSV files.")
 else:
     st.warning("Please upload all required CSV files to proceed.")
