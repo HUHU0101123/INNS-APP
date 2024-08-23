@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 
-# Initialize session state to store the last uploaded files
+# Inicializar el estado de la sesión para almacenar los últimos archivos subidos
 if 'uploaded_file_modules' not in st.session_state:
     st.session_state.uploaded_file_modules = None
 if 'uploaded_file_compulsory' not in st.session_state:
@@ -14,7 +14,7 @@ if 'uploaded_file_elective_courses' not in st.session_state:
 
 st.title('PhD Progress Tracker')
 
-# Provide options to upload new files or use the last uploaded files
+# Proporcionar opciones para subir nuevos archivos o usar los últimos archivos subidos
 file_option = st.radio(
     "Choose file option:",
     ("Upload new files", "Use the last uploaded files")
@@ -26,7 +26,7 @@ if file_option == "Upload new files":
     uploaded_file_elective_submodules = st.file_uploader("Choose the elective submodules CSV file", type="csv", key='elective_submodules')
     uploaded_file_elective_courses = st.file_uploader("Choose the elective courses CSV file", type="csv", key='elective_courses')
 
-    # If new files are uploaded, update session state
+    # Si se suben nuevos archivos, actualizar el estado de la sesión
     if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_submodules, uploaded_file_elective_courses]):
         st.session_state.uploaded_file_modules = uploaded_file_modules
         st.session_state.uploaded_file_compulsory = uploaded_file_compulsory
@@ -36,7 +36,7 @@ if file_option == "Upload new files":
     else:
         st.warning("Please upload all CSV files.")
 else:
-    # Use the last uploaded files from session state
+    # Usar los últimos archivos subidos del estado de la sesión
     uploaded_file_modules = st.session_state.uploaded_file_modules
     uploaded_file_compulsory = st.session_state.uploaded_file_compulsory
     uploaded_file_elective_submodules = st.session_state.uploaded_file_elective_submodules
@@ -48,7 +48,7 @@ else:
         st.warning("No previously uploaded files found. Please upload new files.")
         uploaded_file_modules = uploaded_file_compulsory = uploaded_file_elective_submodules = uploaded_file_elective_courses = None
 
-# Load and display data if files are available
+# Cargar y mostrar datos si los archivos están disponibles
 if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_submodules, uploaded_file_elective_courses]):
     @st.cache_data
     def load_data(file_modules, file_compulsory, file_elective_submodules, file_elective_courses):
@@ -72,7 +72,7 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
     if not any(df.empty for df in [modules, compulsory_courses, elective_submodules, elective_courses]):
         st.write("Data loaded successfully. Let's explore your PhD progress!")
 
-        # Calculate ECTS for compulsory and elective modules
+        # Calcular ECTS para módulos obligatorios y electivos
         compulsory_done = compulsory_courses[compulsory_courses['status'] == 'Done']['ects'].sum()
         compulsory_in_progress = compulsory_courses[compulsory_courses['status'] == 'Current Semester']['ects'].sum()
         compulsory_pending = compulsory_courses[compulsory_courses['status'] == 'Not Started']['ects'].sum()
@@ -80,13 +80,13 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
         elective_done = elective_courses[elective_courses['status'] == 'Done']['ects'].sum()
         elective_in_progress = elective_courses[elective_courses['status'] == 'Current Semester']['ects'].sum()
         elective_total = elective_done + elective_in_progress
-        elective_pending = max(0, 10 - elective_total)  # Ensure at least 10 ECTS for electives
+        elective_pending = max(0, 10 - elective_total)  # Asegurar al menos 10 ECTS para electivos
 
-        # Calculate total ECTS for each category
+        # Calcular el total de ECTS para cada categoría
         total_compulsory = compulsory_done + compulsory_in_progress + compulsory_pending
         total_elective = max(10, elective_done + elective_in_progress + elective_pending)
 
-        # Calculate percentages
+        # Calcular porcentajes
         def calculate_percentage(value, total):
             return (value / total * 100) if total > 0 else 0
 
@@ -98,13 +98,13 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
         elective_in_progress_percent = calculate_percentage(elective_in_progress, total_elective)
         elective_pending_percent = calculate_percentage(elective_pending, total_elective)
 
-        # Prepare data for the stacked bar chart
+        # Preparar datos para el gráfico de barras apiladas
         categories = ['Compulsory', 'Elective']
         done_percentages = [compulsory_done_percent, elective_done_percent]
         in_progress_percentages = [compulsory_in_progress_percent, elective_in_progress_percent]
         pending_percentages = [compulsory_pending_percent, elective_pending_percent]
 
-        # Count courses for each category
+        # Contar cursos para cada categoría
         done_counts = [compulsory_courses[compulsory_courses['status'] == 'Done'].shape[0], 
                        elective_courses[elective_courses['status'] == 'Done'].shape[0]]
         in_progress_counts = [compulsory_courses[compulsory_courses['status'] == 'Current Semester'].shape[0], 
@@ -112,38 +112,41 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
         pending_counts = [compulsory_courses[compulsory_courses['status'] == 'Not Started'].shape[0], 
                           elective_courses[elective_courses['status'] == 'Not Started'].shape[0]]
 
-        # Create the stacked bar chart
+        # Crear el gráfico de barras apiladas
         try:
             st.write("Attempting to create percentage stacked bar chart...")
             fig_stacked_bar = go.Figure()
 
-            # Add bars for each status
+            # Añadir barras para cada estado
             fig_stacked_bar.add_trace(go.Bar(
                 name='Done', x=categories, y=done_percentages, 
                 text=[f'{p:.1f}% ({c})' for p, c in zip(done_percentages, done_counts)], 
                 textposition='inside',
+                hoverinfo='none',  # Desactivar información emergente
                 marker_color='#2ecc71'
             ))
             fig_stacked_bar.add_trace(go.Bar(
                 name='In Progress', x=categories, y=in_progress_percentages, 
                 text=[f'{p:.1f}% ({c})' for p, c in zip(in_progress_percentages, in_progress_counts)], 
                 textposition='inside',
+                hoverinfo='none',  # Desactivar información emergente
                 marker_color='#f39c12'
             ))
             fig_stacked_bar.add_trace(go.Bar(
                 name='Pending', x=categories, y=pending_percentages, 
                 text=[f'{p:.1f}% ({c})' for p, c in zip(pending_percentages, pending_counts)], 
                 textposition='inside',
+                hoverinfo='none',  # Desactivar información emergente
                 marker_color='#e74c3c'
             ))
 
-            # Update layout
+            # Actualizar el diseño
             fig_stacked_bar.update_layout(
                 barmode='stack',
                 title="PhD Progress: Compulsory and Elective Modules",
                 xaxis_title="Module Type",
                 yaxis_title="Percentage",
-                yaxis=dict(tickformat='.0%', range=[0, 100], visible=False),  # Hide y-axis
+                yaxis=dict(tickformat='.0%', range=[0, 100], visible=False),  # Ocultar eje y
                 legend_title="Status",
                 width=700,
                 height=500,
@@ -153,7 +156,7 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
             st.plotly_chart(fig_stacked_bar)
             st.write("Percentage stacked bar chart should be displayed above.")
 
-            # Display total ECTS and completion percentage
+            # Mostrar total de ECTS y porcentaje de finalización
             total_ects = total_compulsory + total_elective
             completed_ects = compulsory_done + elective_done
             completion_percentage = (completed_ects / total_ects) * 100 if total_ects > 0 else 0
@@ -164,7 +167,7 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
             st.write(f"Completed ECTS: {completed_ects}")
             st.write(f"Overall Completion Percentage: {completion_percentage:.1f}%")
 
-            # Display a progress bar
+            # Mostrar una barra de progreso
             st.progress(completion_percentage / 100)
 
         except Exception as e:
@@ -181,6 +184,6 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
 else:
     st.warning("Please upload all required CSV files to proceed.")
 
-# Add Plotly version information
+# Añadir información de la versión de Plotly
 import plotly
 st.write(f"Plotly version: {plotly.__version__}")
