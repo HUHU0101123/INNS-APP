@@ -66,12 +66,27 @@ if uploaded_file is not None:
         # Ensure necessary columns are present
         required_columns = {'current_ects', 'module_name', 'required_ects', 'status', 'notes'}
         if required_columns.issubset(modules.columns):
-            # Your existing code for data processing and visualization goes here
+            # Data processing and visualization
             st.write("Data loaded successfully. Ready for processing and visualization.")
-            # For example, you might add:
-            # st.dataframe(modules)
-            # total_ects_earned = modules['current_ects'].sum()
-            # st.write(f"Total ECTS earned: {total_ects_earned}")
+
+            # Total ECTS Earned
+            total_ects_earned = modules['current_ects'].sum()
+            st.write(f"Total ECTS earned: {total_ects_earned}")
+
+            # ECTS Earned vs. Required
+            fig1 = px.bar(modules, x='module_name', y=['current_ects', 'required_ects'],
+                          title='ECTS Earned vs. Required',
+                          labels={'value': 'ECTS', 'variable': 'Type'},
+                          height=400)
+            st.plotly_chart(fig1)
+
+            # Status Distribution
+            status_counts = modules['status'].value_counts().reset_index()
+            status_counts.columns = ['Status', 'Count']
+            fig2 = px.bar(status_counts, x='Status', y='Count',
+                          title='Status Distribution',
+                          height=400)
+            st.plotly_chart(fig2)
         else:
             st.error("The uploaded CSV file is missing one or more required columns. Please ensure it contains 'current_ects', 'module_name', 'required_ects', 'status', and 'notes'.")
             st.write("Available columns:", modules.columns.tolist())
