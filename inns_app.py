@@ -114,7 +114,7 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
 
         # Crear el gráfico de barras apiladas
         try:
-            st.write("Attempting to create percentage stacked bar chart...")
+            
             fig_stacked_bar = go.Figure()
 
             # Añadir barras para cada estado
@@ -152,10 +152,8 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
                 height=500,
             )
 
-            st.write("Percentage stacked bar chart created successfully. Attempting to display...")
             st.plotly_chart(fig_stacked_bar)
-            st.write("Percentage stacked bar chart should be displayed above.")
-
+            
             # Mostrar total de ECTS y porcentaje de finalización
             total_ects = total_compulsory + total_elective
             completed_ects = compulsory_done + elective_done
