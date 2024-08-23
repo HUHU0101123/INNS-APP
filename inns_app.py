@@ -116,29 +116,52 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
             elective_done, elective_in_progress, elective_pending
         ]
 
-        # Create the sunburst chart
+        # Prepare data for the Treemap chart
+        labels = [
+            "PhD Progress", 
+            "Compulsory Modules", "Elective Modules",
+            "Compulsory Done", "Compulsory In Progress", "Compulsory Pending",
+            "Elective Done", "Elective In Progress", "Elective Pending"
+        ]
+        parents = [
+            "", 
+            "PhD Progress", "PhD Progress",
+            "Compulsory Modules", "Compulsory Modules", "Compulsory Modules",
+            "Elective Modules", "Elective Modules", "Elective Modules"
+        ]
+        values = [
+            compulsory_done + compulsory_in_progress + compulsory_pending + elective_done + elective_in_progress + elective_pending,
+            compulsory_done + compulsory_in_progress + compulsory_pending,
+            elective_done + elective_in_progress + elective_pending,
+            compulsory_done, compulsory_in_progress, compulsory_pending,
+            elective_done, elective_in_progress, elective_pending
+        ]
+
+        # Create the Treemap chart
         try:
-            st.write("Attempting to create sunburst chart...")
-            fig_sunburst = go.Figure(go.Sunburst(
+            st.write("Attempting to create Treemap chart...")
+            fig_treemap = go.Figure(go.Treemap(
                 labels=labels,
                 parents=parents,
                 values=values,
-                branchvalues="total",
                 textinfo="label+value",
-                insidetextorientation='radial'
+                hoverinfo="label+value+percent parent+percent root",
+                marker=dict(
+                    colorscale='Viridis'
+                ),
             ))
 
-            fig_sunburst.update_layout(
+            fig_treemap.update_layout(
                 title="PhD Progress: Compulsory and Elective Modules",
                 width=700,
                 height=700,
             )
 
-            st.write("Sunburst chart created successfully. Attempting to display...")
-            st.plotly_chart(fig_sunburst)
-            st.write("Sunburst chart should be displayed above.")
+            st.write("Treemap chart created successfully. Attempting to display...")
+            st.plotly_chart(fig_treemap)
+            st.write("Treemap chart should be displayed above.")
         except Exception as e:
-            st.error(f"Error creating or displaying sunburst chart: {e}")
+            st.error(f"Error creating or displaying Treemap chart: {e}")
             st.write("Chart data:")
             st.write(pd.DataFrame({"labels": labels, "parents": parents, "values": values}))
 
