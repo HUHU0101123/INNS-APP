@@ -154,14 +154,13 @@ if all([df is not None for df in [modules, compulsory_courses, elective_submodul
     </style>
     """, unsafe_allow_html=True)
 
-    # Apply conditional formatting and styling to the DataFrame
+    # Apply styling to the DataFrame without conditional formatting
     styled_df = summary_df.style \
         .format({
             'Total ECTS': '{:.1f}',
             'Completed ECTS': '{:.1f}',
             'Completion Percentage': '{:.1f}%'
         }) \
-        .applymap(lambda x: 'color: red;' if isinstance(x, (int, float)) and x < 50 else '', subset=['Completion Percentage']) \
         .set_table_styles([{
             'selector': 'thead th',
             'props': [('background-color', '#4CAF50'), ('color', 'white'), ('font-weight', 'bold'), ('text-align', 'center')]
@@ -182,6 +181,9 @@ if all([df is not None for df in [modules, compulsory_courses, elective_submodul
 
     # Display the styled DataFrame
     st.dataframe(styled_df, use_container_width=True)
+
+else:
+    st.error("Failed to load data from the repository. Please check if all required CSV files are present and valid in your GitHub repository.")
 
 else:
     st.error("Failed to load data from the repository. Please check if all required CSV files are present and valid in your GitHub repository.")
