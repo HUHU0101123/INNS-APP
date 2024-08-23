@@ -102,7 +102,7 @@ if all([df is not None for df in [modules, compulsory_courses, elective_submodul
     
     fig_stacked_bar.update_layout(
         barmode='stack',
-        title="PhD Progress: Compulsory and Elective Modules",
+        title="Compulsory and Elective Modules",
         yaxis_title="Percentage",
         yaxis=dict(tickformat='.0%', range=[0, 100], visible=False),  # Hide Y axis
         legend_title="Status",
