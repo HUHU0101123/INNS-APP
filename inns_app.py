@@ -112,9 +112,24 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
         pending_counts = [compulsory_courses[compulsory_courses['status'] == 'Not Started'].shape[0], 
                           elective_courses[elective_courses['status'] == 'Not Started'].shape[0]]
 
+        # Calcular el porcentaje de finalización
+        total_ects = total_compulsory + total_elective
+        completed_ects = compulsory_done + elective_done
+        completion_percentage = (completed_ects / total_ects) * 100 if total_ects > 0 else 0
+
+        # Mostrar el porcentaje de finalización general antes del gráfico
+        st.write(f"Overall Completion Percentage: {completion_percentage:.1f}%")
+        st.write(f"Total Compulsory ECTS: {total_compulsory}")
+        st.write(f"Total Elective ECTS: {total_elective}")
+        st.write(f"Total ECTS: {total_ects}")
+        st.write(f"Completed ECTS: {completed_ects}")
+
+        # Mostrar una barra de progreso
+        st.progress(completion_percentage / 100)
+
         # Crear el gráfico de barras apiladas
         try:
-            
+            st.write("Attempting to create percentage stacked bar chart...")
             fig_stacked_bar = go.Figure()
 
             # Añadir barras para cada estado
@@ -146,27 +161,15 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
                 title="PhD Progress: Compulsory and Elective Modules",
                 xaxis_title="Module Type",
                 yaxis_title="Percentage",
-                yaxis=dict(tickformat='.0%', range=[0, 100], visible=False),  # Ocultar eje y
+                yaxis=dict(tickformat='.0%', range=[0, 100], visible=False),  # Ocultar eje Y
                 legend_title="Status",
                 width=700,
                 height=500,
             )
 
+            st.write("Percentage stacked bar chart created successfully. Attempting to display...")
             st.plotly_chart(fig_stacked_bar)
-            
-            # Mostrar total de ECTS y porcentaje de finalización
-            total_ects = total_compulsory + total_elective
-            completed_ects = compulsory_done + elective_done
-            completion_percentage = (completed_ects / total_ects) * 100 if total_ects > 0 else 0
-
-            st.write(f"Total Compulsory ECTS: {total_compulsory}")
-            st.write(f"Total Elective ECTS: {total_elective}")
-            st.write(f"Total ECTS: {total_ects}")
-            st.write(f"Completed ECTS: {completed_ects}")
-            st.write(f"Overall Completion Percentage: {completion_percentage:.1f}%")
-
-            # Mostrar una barra de progreso
-            st.progress(completion_percentage / 100)
+            st.write("Percentage stacked bar chart should be displayed above.")
 
         except Exception as e:
             st.error(f"Error creating or displaying percentage stacked bar chart: {e}")
@@ -174,7 +177,8 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
             st.write(pd.DataFrame({
                 "Category": categories * 3,
                 "Status": ["Done"] * 2 + ["In Progress"] * 2 + ["Pending"] * 2,
-                "Percentage": done_percentages + in_progress_percentages + pending_percentages
+                "Percentage": done_percentages + in_progress_percentages + pending_percentages,
+                "Count": done_counts + in_progress_counts + pending_counts
             }))
 
     else:
@@ -182,6 +186,3 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
 else:
     st.warning("Please upload all required CSV files to proceed.")
 
-# Añadir información de la versión de Plotly
-import plotly
-st.write(f"Plotly version: {plotly.__version__}")
