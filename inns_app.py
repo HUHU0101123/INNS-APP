@@ -36,7 +36,7 @@ if uploaded_file is not None:
     def load_data(file):
         try:
             # Attempt to load the data using the correct delimiter and encoding
-            modules = pd.read_csv(file, delimiter=';', encoding='utf-8')
+            modules = pd.read_csv(file, delimiter=',', encoding='utf-8')
 
             # Remove any leading/trailing whitespace from column names
             modules.columns = modules.columns.str.strip()
