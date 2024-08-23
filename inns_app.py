@@ -135,17 +135,17 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
             ))
 
             # Add overall completion line
-            fig_stacked_bar.add_trace(go.Scatter(
-                x=categories, 
-                y=[completion_percentage] * len(categories),
-                mode='lines+markers+text',
-                name='Overall Completion',
-                line=dict(color='blue', width=2, dash='dash'),
-                marker=dict(size=8),
-                text=[f'{completion_percentage:.1f}%'] * len(categories),
-                textposition='top right',
-                hoverinfo='none'  # Disable hover information
-            ))
+            #fig_stacked_bar.add_trace(go.Scatter(
+               # x=categories, 
+                #y=[completion_percentage] * len(categories),
+               # mode='lines+markers+text',
+               # name='Overall Completion',
+               # line=dict(color='blue', width=2, dash='dash'),
+               # marker=dict(size=8),
+               # text=[f'{completion_percentage:.1f}%'] * len(categories),
+                #textposition='top right',
+                #hoverinfo='none'  # Disable hover information
+           # ))
 
             # Update layout
             fig_stacked_bar.update_layout(
