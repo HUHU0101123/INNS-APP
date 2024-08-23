@@ -112,7 +112,15 @@ if all([df is not None for df in [modules, compulsory_courses, elective_submodul
     
     st.plotly_chart(fig_stacked_bar)
 
-    # Create summary table
+    # Define summary_data for the summary table
+    summary_data = {
+        "Category": ["Compulsory", "Elective", "Total"],
+        "Total ECTS": [total_compulsory, max(10, elective_done + elective_in_progress + elective_pending), total_compulsory + total_elective],
+        "Completed ECTS": [compulsory_done, elective_done, completed_ects],
+        "Completion Percentage": [compulsory_done_percent, elective_done_percent, completion_percentage]
+    }
+
+    # Create the summary DataFrame
     summary_df = pd.DataFrame(summary_data)
 
     # Custom CSS to style the table
@@ -145,7 +153,7 @@ if all([df is not None for df in [modules, compulsory_courses, elective_submodul
         }
     </style>
     """, unsafe_allow_html=True)
-    
+
     # Apply conditional formatting and styling to the DataFrame
     styled_df = summary_df.style \
         .format({
@@ -171,7 +179,7 @@ if all([df is not None for df in [modules, compulsory_courses, elective_submodul
             'props': [('text-align', 'center'), ('padding', '10px'), ('border', '1px solid #ddd')]
         }]) \
         .hide(axis='index')
-    
+
     # Display the styled DataFrame
     st.dataframe(styled_df, use_container_width=True)
 
