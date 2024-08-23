@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-from streamlit_nested_expander import st_nested_expander
+
 
 # Initialize session state to store the last uploaded files
 if 'uploaded_file_modules' not in st.session_state:
@@ -164,53 +164,51 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
             st.plotly_chart(fig_stacked_bar)
             
 
-            # Display a summary table below the graph
-            summary_data = {
-                "Category": ["Compulsory", "Elective", "Total"],
-                "Total ECTS": [total_compulsory, total_elective, total_ects],
-                "Completed ECTS": [compulsory_done, elective_done, completed_ects],
-                "Completion Percentage": [f"{compulsory_done_percent:.1f}%", f"{elective_done_percent:.1f}%", f"{completion_percentage:.1f}%"]
-            }
-            summary_df = pd.DataFrame(summary_data)
-            st.write("### Summary Table")
-            st.table(summary_df)
+            st.write("## Summary Table")
 
-            # Add this import at the top of your file
-            from streamlit_nested_expander import st_nested_expander
+            # Create three columns
+            col1, col2, col3 = st.columns(3)
             
-            # Replace the existing summary table code with this:
-            st.write("### Hierarchical Summary Table")
+            # Compulsory Courses
+            with col1:
+                st.markdown("### Compulsory Courses")
+                st.metric("Total ECTS", f"{total_compulsory:.1f}")
+                st.metric("Completed ECTS", f"{compulsory_done:.1f}")
+                st.progress(compulsory_done_percent / 100)
+                st.markdown(f"**Completion: {compulsory_done_percent:.1f}%**")
+                
+                # Display completed compulsory courses
+                st.markdown("#### Completed Courses")
+                completed_compulsory = compulsory_courses[compulsory_courses['status'] == 'Done']
+                for _, course in completed_compulsory.iterrows():
+                    st.markdown(f"- {course['course']} ({course['ects']} ECTS)")
             
-            # Main expander for all data
-            with st.expander("Overall Summary", expanded=True):
-                st.table(summary_df)
+            # Elective Courses
+            with col2:
+                st.markdown("### Elective Courses")
+                st.metric("Total ECTS", f"{total_elective:.1f}")
+                st.metric("Completed ECTS", f"{elective_done:.1f}")
+                st.progress(elective_done_percent / 100)
+                st.markdown(f"**Completion: {elective_done_percent:.1f}%**")
                 
-                # Compulsory Courses expander
-                with st.expander("Compulsory Courses"):
-                    st.write("#### Compulsory Courses Details")
-                    st.table(compulsory_courses)
-                    
-                    # Nested expanders for each compulsory course status
-                    for status in ['Done', 'Current Semester', 'Not Started']:
-                        with st.expander(f"{status} Courses"):
-                            filtered_courses = compulsory_courses[compulsory_courses['status'] == status]
-                            st.table(filtered_courses)
+                # Display completed elective courses
+                st.markdown("#### Completed Courses")
+                completed_elective = elective_courses[elective_courses['status'] == 'Done']
+                for _, course in completed_elective.iterrows():
+                    st.markdown(f"- {course['course']} ({course['ects']} ECTS)")
+            
+            # Overall Progress
+            with col3:
+                st.markdown("### Overall Progress")
+                st.metric("Total ECTS", f"{total_ects:.1f}")
+                st.metric("Completed ECTS", f"{completed_ects:.1f}")
+                st.progress(completion_percentage / 100)
+                st.markdown(f"**Overall Completion: {completion_percentage:.1f}%**")
                 
-                # Elective Courses expander
-                with st.expander("Elective Courses"):
-                    st.write("#### Elective Courses Details")
-                    st.table(elective_courses)
-                    
-                    # Nested expanders for each elective course status
-                    for status in ['Done', 'Current Semester', 'Not Started']:
-                        with st.expander(f"{status} Courses"):
-                            filtered_courses = elective_courses[elective_courses['status'] == status]
-                            st.table(filtered_courses)
-                
-                # Elective Submodules expander
-                with st.expander("Elective Submodules"):
-                    st.write("#### Elective Submodules Details")
-                    st.table(elective_submodules)
+                # Display elective submodules
+                st.markdown("#### Elective Submodules")
+                for _, submodule in elective_submodules.iterrows():
+                    st.markdown(f"- {submodule['submodule']} ({submodule['ects']} ECTS)")
 
 
 
