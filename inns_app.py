@@ -119,10 +119,6 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
 
         # Mostrar el porcentaje de finalización general antes del gráfico
         st.write(f"Overall Completion Percentage: {completion_percentage:.1f}%")
-        st.write(f"Total Compulsory ECTS: {total_compulsory}")
-        st.write(f"Total Elective ECTS: {total_elective}")
-        st.write(f"Total ECTS: {total_ects}")
-        st.write(f"Completed ECTS: {completed_ects}")
 
         # Crear el gráfico de barras apiladas
         try:
@@ -150,6 +146,19 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
                 textposition='inside',
                 hoverinfo='none',  # Desactivar información emergente
                 marker_color='#e74c3c'
+            ))
+
+            # Añadir la línea de porcentaje de finalización general
+            fig_stacked_bar.add_trace(go.Scatter(
+                x=categories,
+                y=[completion_percentage] * len(categories),
+                mode='lines+markers',
+                name='Overall Completion',
+                line=dict(color='blue', width=2, dash='dash'),
+                marker=dict(size=8),
+                text=[f'{completion_percentage:.1f}%'] * len(categories),
+                textposition='top right',
+                hoverinfo='none'  # Desactivar información emergente
             ))
 
             # Actualizar el diseño
