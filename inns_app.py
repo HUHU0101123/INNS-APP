@@ -83,48 +83,76 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
         elective_total = elective_done + elective_in_progress
         elective_pending = max(0, 10 - elective_total)  # Ensure at least 10 ECTS for electives
 
+        # Calculate total ECTS for each category
+        total_compulsory = compulsory_done + compulsory_in_progress + compulsory_pending
+        total_elective = max(10, elective_done + elective_in_progress + elective_pending)
+
+        # Calculate percentages
+        def calculate_percentage(value, total):
+            return (value / total * 100) if total > 0 else 0
+
+        compulsory_done_percent = calculate_percentage(compulsory_done, total_compulsory)
+        compulsory_in_progress_percent = calculate_percentage(compulsory_in_progress, total_compulsory)
+        compulsory_pending_percent = calculate_percentage(compulsory_pending, total_compulsory)
+
+        elective_done_percent = calculate_percentage(elective_done, total_elective)
+        elective_in_progress_percent = calculate_percentage(elective_in_progress, total_elective)
+        elective_pending_percent = calculate_percentage(elective_pending, total_elective)
+
         # Debug information
         st.write("## ECTS Calculations")
-        st.write(f"Compulsory done: {compulsory_done}")
-        st.write(f"Compulsory in progress: {compulsory_in_progress}")
-        st.write(f"Compulsory pending: {compulsory_pending}")
-        st.write(f"Elective done: {elective_done}")
-        st.write(f"Elective in progress: {elective_in_progress}")
-        st.write(f"Elective pending: {elective_pending}")
+        st.write(f"Compulsory done: {compulsory_done} ECTS ({compulsory_done_percent:.1f}%)")
+        st.write(f"Compulsory in progress: {compulsory_in_progress} ECTS ({compulsory_in_progress_percent:.1f}%)")
+        st.write(f"Compulsory pending: {compulsory_pending} ECTS ({compulsory_pending_percent:.1f}%)")
+        st.write(f"Elective done: {elective_done} ECTS ({elective_done_percent:.1f}%)")
+        st.write(f"Elective in progress: {elective_in_progress} ECTS ({elective_in_progress_percent:.1f}%)")
+        st.write(f"Elective pending: {elective_pending} ECTS ({elective_pending_percent:.1f}%)")
 
         # Prepare data for the stacked bar chart
         categories = ['Compulsory', 'Elective']
-        done = [compulsory_done, elective_done]
-        in_progress = [compulsory_in_progress, elective_in_progress]
-        pending = [compulsory_pending, elective_pending]
+        done_percentages = [compulsory_done_percent, elective_done_percent]
+        in_progress_percentages = [compulsory_in_progress_percent, elective_in_progress_percent]
+        pending_percentages = [compulsory_pending_percent, elective_pending_percent]
 
         # Create the stacked bar chart
         try:
-            st.write("Attempting to create stacked bar chart...")
-            fig_stacked_bar = go.Figure(data=[
-                go.Bar(name='Done', x=categories, y=done, marker_color='#2ecc71'),
-                go.Bar(name='In Progress', x=categories, y=in_progress, marker_color='#f39c12'),
-                go.Bar(name='Pending', x=categories, y=pending, marker_color='#e74c3c')
-            ])
+            st.write("Attempting to create percentage stacked bar chart...")
+            fig_stacked_bar = go.Figure()
 
-            # Change the bar mode
+            # Add bars for each status
+            fig_stacked_bar.add_trace(go.Bar(
+                name='Done', x=categories, y=done_percentages, 
+                text=[f'{p:.1f}%' for p in done_percentages], textposition='inside',
+                marker_color='#2ecc71'
+            ))
+            fig_stacked_bar.add_trace(go.Bar(
+                name='In Progress', x=categories, y=in_progress_percentages, 
+                text=[f'{p:.1f}%' for p in in_progress_percentages], textposition='inside',
+                marker_color='#f39c12'
+            ))
+            fig_stacked_bar.add_trace(go.Bar(
+                name='Pending', x=categories, y=pending_percentages, 
+                text=[f'{p:.1f}%' for p in pending_percentages], textposition='inside',
+                marker_color='#e74c3c'
+            ))
+
+            # Update layout
             fig_stacked_bar.update_layout(
                 barmode='stack',
                 title="PhD Progress: Compulsory and Elective Modules",
                 xaxis_title="Module Type",
-                yaxis_title="ECTS Credits",
+                yaxis_title="Percentage",
+                yaxis=dict(tickformat='.0%', range=[0, 100]),
                 legend_title="Status",
                 width=700,
                 height=500,
             )
 
-            st.write("Stacked bar chart created successfully. Attempting to display...")
+            st.write("Percentage stacked bar chart created successfully. Attempting to display...")
             st.plotly_chart(fig_stacked_bar)
-            st.write("Stacked bar chart should be displayed above.")
+            st.write("Percentage stacked bar chart should be displayed above.")
 
             # Display total ECTS and completion percentage
-            total_compulsory = compulsory_done + compulsory_in_progress + compulsory_pending
-            total_elective = max(10, elective_done + elective_in_progress + elective_pending)
             total_ects = total_compulsory + total_elective
             completed_ects = compulsory_done + elective_done
             completion_percentage = (completed_ects / total_ects) * 100 if total_ects > 0 else 0
@@ -133,18 +161,18 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
             st.write(f"Total Elective ECTS: {total_elective}")
             st.write(f"Total ECTS: {total_ects}")
             st.write(f"Completed ECTS: {completed_ects}")
-            st.write(f"Completion Percentage: {completion_percentage:.2f}%")
+            st.write(f"Overall Completion Percentage: {completion_percentage:.1f}%")
 
             # Display a progress bar
             st.progress(completion_percentage / 100)
 
         except Exception as e:
-            st.error(f"Error creating or displaying stacked bar chart: {e}")
+            st.error(f"Error creating or displaying percentage stacked bar chart: {e}")
             st.write("Chart data:")
             st.write(pd.DataFrame({
                 "Category": categories * 3,
                 "Status": ["Done"] * 2 + ["In Progress"] * 2 + ["Pending"] * 2,
-                "ECTS": done + in_progress + pending
+                "Percentage": done_percentages + in_progress_percentages + pending_percentages
             }))
 
     else:
