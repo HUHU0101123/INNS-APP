@@ -124,12 +124,12 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
 
         # Prepare data for pie chart
         pie_data = pd.DataFrame({
-            'Status': ['Done', 'In Progress', 'Pending'],
-            'ECTS': [compulsory_done + elective_done, 
-                     compulsory_in_progress + elective_in_progress, 
-                     compulsory_pending + elective_pending]
+            'Category': ['Compulsory Modules', 'Elective Modules'],
+            'Done': [compulsory_done, elective_done],
+            'In Progress': [compulsory_in_progress, elective_in_progress],
+            'Pending': [compulsory_pending, elective_pending]
         })
-        pie_data['Percentage'] = pie_data['ECTS'] / total_ects * 100
+        pie_data = pie_data.melt(id_vars='Category', var_name='Status', value_name='ECTS')
 
         # Create pie chart
         fig_pie = px.pie(
@@ -139,10 +139,11 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
             title=f'Overall PhD Progress (Total: {total_ects} ECTS)',
             color='Status',
             color_discrete_map={'Done': 'green', 'In Progress': 'yellow', 'Pending': 'red'},
-            hover_data=['Percentage'],
-            labels={'ECTS': 'ECTS', 'Percentage': 'Percentage'},
+            hover_data=['Category'],
+            labels={'ECTS': 'ECTS'},
             height=500
         )
+
         fig_pie.update_traces(textposition='inside', textinfo='percent+label')
         st.plotly_chart(fig_pie)
 
@@ -209,3 +210,4 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
         st.warning("Please upload valid CSV files to continue.")
 else:
     st.warning("Please upload all required CSV files to proceed.")
+
