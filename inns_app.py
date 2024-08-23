@@ -67,25 +67,36 @@ if all([df is not None for df in [modules, compulsory_courses, elective_submodul
     in_progress_percentages = [compulsory_in_progress_percent, elective_in_progress_percent]
     pending_percentages = [compulsory_pending_percent, elective_pending_percent]
 
+    # Calculate the number of courses for each category and status
+    compulsory_done_count = compulsory_courses[compulsory_courses['status'] == 'Done'].shape[0]
+    compulsory_in_progress_count = compulsory_courses[compulsory_courses['status'] == 'Current Semester'].shape[0]
+    compulsory_pending_count = compulsory_courses[compulsory_courses['status'] == 'Not Started'].shape[0]
+    elective_done_count = elective_courses[elective_courses['status'] == 'Done'].shape[0]
+    elective_in_progress_count = elective_courses[elective_courses['status'] == 'Current Semester'].shape[0]
+    elective_pending_count = elective_courses[elective_courses['status'] == 'Not Started'].shape[0]
+    
     # Create the stacked bar chart
     fig_stacked_bar = go.Figure()
-
+    
     fig_stacked_bar.add_trace(go.Bar(
         name='Done', x=categories, y=done_percentages,
-        text=[f'{p:.1f}%' for p in done_percentages], textposition='inside',
+        text=[f'{p:.1f}%<br>({compulsory_done_count} courses)', f'{p:.1f}%<br>({elective_done_count} courses)'],
+        textposition='inside',
         marker_color='#2ecc71'
     ))
     fig_stacked_bar.add_trace(go.Bar(
         name='In Progress', x=categories, y=in_progress_percentages,
-        text=[f'{p:.1f}%' for p in in_progress_percentages], textposition='inside',
+        text=[f'{p:.1f}%<br>({compulsory_in_progress_count} courses)', f'{p:.1f}%<br>({elective_in_progress_count} courses)'],
+        textposition='inside',
         marker_color='#f39c12'
     ))
     fig_stacked_bar.add_trace(go.Bar(
         name='Pending', x=categories, y=pending_percentages,
-        text=[f'{p:.1f}%' for p in pending_percentages], textposition='inside',
+        text=[f'{p:.1f}%<br>({compulsory_pending_count} courses)', f'{p:.1f}%<br>({elective_pending_count} courses)'],
+        textposition='inside',
         marker_color='#e74c3c'
     ))
-
+    
     fig_stacked_bar.update_layout(
         barmode='stack',
         title="PhD Progress: Compulsory and Elective Modules",
@@ -96,7 +107,7 @@ if all([df is not None for df in [modules, compulsory_courses, elective_submodul
         height=500,
     )
 
-    st.plotly_chart(fig_stacked_bar)
+st.plotly_chart(fig_stacked_bar)
 
     # Create summary table
     summary_data = {
