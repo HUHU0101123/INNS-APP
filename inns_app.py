@@ -125,47 +125,31 @@ if all([df is not None for df in [modules, compulsory_courses, elective_submodul
     # Custom CSS to style the table
     st.markdown("""
     <style>
-        .stTable {
-            font-size: 18px;
-        }
-        .stTable thead tr th {
-            background-color: #0e1117;
+        .dataframe th {
+            background-color: #4CAF50; /* Green */
             color: white;
-            font-weight: bold;
-            text-align: center !important;
+            text-align: center;
         }
-        .stTable tbody tr:nth-of-type(even) {
-            background-color: #f3f3f3;
+        .dataframe td {
+            text-align: center;
+            padding: 10px;
         }
-        .stTable tbody tr:hover {
-            background-color: #e6f3ff;
-            transition: background-color 0.3s;
+        .dataframe tr:nth-child(even) {
+            background-color: #f2f2f2; /* Light grey */
         }
-        .stTable td {
-            text-align: center !important;
+        .dataframe tr:hover {
+            background-color: #ddd; /* Darker grey on hover */
         }
     </style>
     """, unsafe_allow_html=True)
     
     # Display the table with a custom header
     st.markdown("## 📊 Summary Table")
-    
-    # Format the DataFrame
-    summary_df['Total ECTS'] = summary_df['Total ECTS'].map('{:.1f}'.format)
-    summary_df['Completed ECTS'] = summary_df['Completed ECTS'].map('{:.1f}'.format)
-    summary_df['Completion Percentage'] = summary_df['Completion Percentage'].map('{:.1f}%'.format)
-    
-    st.table(summary_df)
-    
-    # Add some explanatory text
-    st.markdown("""
-    This table provides a summary of your academic progress:
-    - **Compulsory**: Required courses for your program
-    - **Elective**: Optional courses you can choose
-    - **Total**: Sum of compulsory and elective courses
-    
-    The 'Completion Percentage' shows how much of each category you've finished.
-    """)
+    st.table(summary_df.style.format({
+        'Total ECTS': '{:.1f}',
+        'Completed ECTS': '{:.1f}',
+        'Completion Percentage': '{:.1f}%'
+    }))
 
 else:
     st.error("Failed to load data from the repository. Please check if all required CSV files are present and valid in your GitHub repository.")
