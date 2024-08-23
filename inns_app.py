@@ -70,7 +70,7 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
     )
 
     if not any(df.empty for df in [modules, compulsory_courses, elective_submodules, elective_courses]):
-        st.write("Data loaded successfully. Let's explore your PhD progress!")
+        st.write("Data loaded successfully.")
 
         # Calcular ECTS para módulos obligatorios y electivos
         compulsory_done = compulsory_courses[compulsory_courses['status'] == 'Done']['ects'].sum()
@@ -129,7 +129,7 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
 
         # Crear el gráfico de barras apiladas
         try:
-            st.write("Attempting to create percentage stacked bar chart...")
+            
             fig_stacked_bar = go.Figure()
 
             # Añadir barras para cada estado
@@ -167,9 +167,9 @@ if all([uploaded_file_modules, uploaded_file_compulsory, uploaded_file_elective_
                 height=500,
             )
 
-            st.write("Percentage stacked bar chart created successfully. Attempting to display...")
+            
             st.plotly_chart(fig_stacked_bar)
-            st.write("Percentage stacked bar chart should be displayed above.")
+           
 
         except Exception as e:
             st.error(f"Error creating or displaying percentage stacked bar chart: {e}")
